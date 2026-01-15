@@ -12,8 +12,8 @@ Your task is to develop a REST service for a banking use case. To complete this 
    - [ ] Signing up
    - [ ] Authentication
    - [ ] Account Holders
-   - [ ] Accounts
-   - [ ] Transactions
+   - [X] Accounts
+   - [X] Transactions
    - [ ] Money Transfer
    - [ ] Cards
    - [ ] Statements
@@ -22,14 +22,14 @@ Your task is to develop a REST service for a banking use case. To complete this 
    - [X] Database implementation
 
 3. **Test Suite**
-   - [ ] Comprehensive test coverage for critical functionality
-   - [ ] Unit tests for business logic
-   - [ ] Integration tests for API endpoints
+   - [] Comprehensive test coverage for critical functionality
+   - [] Unit tests for business logic
+   - [] Integration tests for API endpoints
 
 4. **Containerization**
-   - [ ] Dockerfile for the application
-   - [ ] docker-compose.yml for local development
-   - [ ] Environment variable configuration
+   - [X] Dockerfile for the application
+   - [X] docker-compose.yml for local development
+   - [X] Environment variable configuration
    - [ ] Multi-stage builds (bonus)
 
 5. **Logging & Monitoring**
@@ -38,7 +38,7 @@ Your task is to develop a REST service for a banking use case. To complete this 
    - [ ] Error tracking and reporting
 
 6. **Health Checks**
-   - [ ] Health check endpoint
+   - [X] Health check endpoint
    - [ ] Database connectivity checks
    - [ ] Service readiness probes
    - [ ] Graceful shutdown handling

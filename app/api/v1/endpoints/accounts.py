@@ -7,7 +7,8 @@ from typing import List
 
 from app.schemas import AccountCreate, AccountResponse, AccountWithTransactions
 from app.services import AccountService
-from app.core.dependencies import get_account_service
+from app.core.dependencies import get_account_service, get_current_active_user
+from app.models.user import User
 
 router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
@@ -21,6 +22,7 @@ router = APIRouter(prefix="/accounts", tags=["Accounts"])
 def create_account(
     account: AccountCreate,
     account_service: AccountService = Depends(get_account_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Create a new bank account."""
     return account_service.create_account(
@@ -39,6 +41,7 @@ def list_accounts(
     skip: int = 0,
     limit: int = 100,
     account_service: AccountService = Depends(get_account_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """List all bank accounts with pagination."""
     return account_service.get_all_accounts(skip=skip, limit=limit)
@@ -52,6 +55,7 @@ def list_accounts(
 def get_account(
     account_id: int,
     account_service: AccountService = Depends(get_account_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Get a specific account by ID with its transactions."""
     return account_service.get_account_by_id(account_id)
@@ -65,6 +69,7 @@ def get_account(
 def delete_account(
     account_id: int,
     account_service: AccountService = Depends(get_account_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Delete a bank account."""
     account_service.delete_account(account_id)

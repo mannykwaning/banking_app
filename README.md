@@ -1,15 +1,19 @@
 # Banking App API
 
-A starter banking application backend API built with FastAPI and SQLite, featuring Docker support and environment-based configuration.
+A production-ready banking application backend API built with FastAPI and SQLite, featuring OAuth2 authentication, Docker support, and comprehensive testing.
 
 ## Features
 
 - 🚀 FastAPI framework with automatic OpenAPI documentation
+- 🔐 OAuth2 authentication with JWT tokens
+- 🔒 Secure password hashing with bcrypt
 - 💾 SQLite database with SQLAlchemy ORM
 - 🐳 Docker and Docker Compose support
-- 🔒 Environment variable configuration (.env support)
-- 📝 Interactive API documentation with Swagger UI
-- ✅ Basic banking operations (accounts and transactions)
+- 🌍 Environment variable configuration (.env support)
+- 📝 Interactive API documentation with Swagger UI (OAuth2 integrated)
+- ✅ Banking operations (accounts and transactions)
+- 🧪 Comprehensive unit and integration tests
+- 🏗️ Clean architecture with repository and service layer patterns
 
 ## Prerequisites
 
@@ -19,26 +23,53 @@ A starter banking application backend API built with FastAPI and SQLite, featuri
 ## Project Structure
 
 ```plaintext
-   banking_app_backend/
-   ├── app/
-   │   ├── __init__.py
-   │   ├── main.py              # FastAPI application entry point
-   │   ├── config.py            # Configuration and environment variables
-   │   ├── database.py          # Database models and setup
-   │   ├── schemas.py           # Pydantic schemas for validation
-   │   ├── models/              # SQLAlchemy models
-   │   │   └── __init__.py
-   │   └── routers/             # API route handlers
-   │       └── __init__.py
-   ├── tests/
-   │   ├── unit/
-   │   └── integration/
-   ├── requirements.txt         # Python dependencies
-   ├── Dockerfile               # Docker container configuration
-   ├── docker-compose.yml       # Docker Compose orchestration
-   ├── .env.example             # Environment variables template
-   ├── .gitignore
-   └── README.md               # This file
+banking_app_backend/
+├── app/
+│   ├── __init__.py
+│   ├── api/
+│   │   └── v1/
+│   │       ├── __init__.py
+│   │       └── endpoints/
+│   │           ├── accounts.py      # Account endpoints
+│   │           ├── auth.py          # Authentication endpoints
+│   │           └── transactions.py  # Transaction endpoints
+│   ├── core/
+│   │   ├── config.py               # Configuration and settings
+│   │   ├── database.py             # Database setup
+│   │   └── dependencies.py         # FastAPI dependencies
+│   ├── models/
+│   │   ├── account.py              # Account database model
+│   │   ├── transaction.py          # Transaction database model
+│   │   └── user.py                 # User database model
+│   ├── repositories/
+│   │   ├── account_repository.py   # Account data access
+│   │   ├── transaction_repository.py
+│   │   └── user_repository.py      # User data access
+│   ├── schemas/
+│   │   ├── account.py              # Account request/response schemas
+│   │   ├── transaction.py          # Transaction schemas
+│   │   └── user.py                 # User and auth schemas
+│   └── services/
+│       ├── account_service.py      # Account business logic
+│       ├── auth_service.py         # Authentication service
+│       └── transaction_service.py  # Transaction business logic
+├── tests/
+│   ├── unit/                       # Unit tests
+│   │   ├── test_auth_service.py
+│   │   ├── test_user_repository.py
+│   │   └── ...
+│   └── integration/                # Integration tests
+│       ├── conftest.py
+│       ├── test_auth.py
+│       └── ...
+├── data/                           # SQLite database files
+├── main.py                         # Application entry point
+├── requirements.txt                # Python dependencies
+├── Dockerfile                      # Docker configuration
+├── docker-compose.yml              # Docker Compose setup
+├── AUTH_GUIDE.md                   # Authentication usage guide
+├── .env.example                    # Environment template
+└── README.md                       # This file
 ```
 
 ## Quick Start
@@ -111,19 +142,26 @@ A starter banking application backend API built with FastAPI and SQLite, featuri
 
 ## API Endpoints
 
-### Root & Health
+### Root & Health (Public)
 
 - `GET /` - Root endpoint with API information
 - `GET /health` - Health check endpoint
 
-### Accounts
+### Authentication (Public)
+
+- `POST /api/v1/auth/signup` - Register a new user
+- `POST /api/v1/auth/login` - Login and get access token (OAuth2 flow)
+- `POST /api/v1/auth/login/json` - Login with JSON body
+- `GET /api/v1/auth/me` - Get current user information (requires authentication)
+
+### Accounts (Protected - Requires Authentication)
 
 - `POST /api/v1/accounts` - Create a new bank account
 - `GET /api/v1/accounts` - List all accounts
 - `GET /api/v1/accounts/{account_id}` - Get account details with transactions
 - `DELETE /api/v1/accounts/{account_id}` - Delete an account
 
-### Transactions
+### Transactions (Protected - Requires Authentication)
 
 - `POST /api/v1/transactions` - Create a new transaction (deposit/withdrawal)
 - `GET /api/v1/transactions` - List all transactions
@@ -131,11 +169,51 @@ A starter banking application backend API built with FastAPI and SQLite, featuri
 
 ## Example Usage
 
-### Create an Account
+### Authentication Flow
+
+#### 1. Register a New User
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/signup" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "username": "johndoe",
+    "password": "securepass123",
+    "full_name": "John Doe"
+  }'
+```
+
+#### 2. Login to Get Access Token
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/login/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "johndoe",
+    "password": "securepass123"
+  }'
+```
+
+Response:
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer"
+}
+```
+
+### Using Protected Endpoints
+
+**Note:** All account and transaction endpoints require authentication. Include the token in the Authorization header.
+
+#### Create an Account
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/accounts" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -d '{
     "account_holder": "John Doe",
     "account_type": "checking",
@@ -143,11 +221,12 @@ curl -X POST "http://localhost:8000/api/v1/accounts" \
   }'
 ```
 
-### Make a Deposit
+#### Make a Deposit
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/transactions" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -d '{
     "account_id": 1,
     "transaction_type": "deposit",
@@ -156,11 +235,12 @@ curl -X POST "http://localhost:8000/api/v1/transactions" \
   }'
 ```
 
-### Make a Withdrawal
+#### Make a Withdrawal
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/transactions" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -d '{
     "account_id": 1,
     "transaction_type": "withdrawal",
@@ -169,11 +249,22 @@ curl -X POST "http://localhost:8000/api/v1/transactions" \
   }'
 ```
 
-### Get Account Details
+#### Get Account Details
 
 ```bash
-curl "http://localhost:8000/api/v1/accounts/1"
+curl "http://localhost:8000/api/v1/accounts/1" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
+
+### Using Swagger UI
+
+1. Navigate to `http://localhost:8000/docs`
+2. Click "Authorize" button (🔓 icon at the top)
+3. Login at `/api/v1/auth/login` to get your token
+4. Enter the token in the authorization dialog
+5. All protected endpoints will now work with your credentials
+
+For detailed authentication examples and troubleshooting, see [AUTH_GUIDE.md](AUTH_GUIDE.md).
 
 ## Environment Variables
 
@@ -181,7 +272,7 @@ The application uses environment variables for configuration. Copy `.env.example
 
 ```env
 # Database Configuration
-DATABASE_URL=sqlite:///./banking.db
+DATABASE_URL=sqlite:///./data/banking.db
 
 # Application Configuration
 APP_NAME=Banking App API
@@ -189,41 +280,66 @@ APP_VERSION=1.0.0
 DEBUG=True
 
 # API Configuration
-API_PREFIX=/api/v1
+API_V1_PREFIX=/api/v1
 
-# Security
+# Security (IMPORTANT: Change in production!)
 SECRET_KEY=your-secret-key-here-change-in-production
 ```
 
-## Database
+**Security Note:** The `SECRET_KEY` is used to sign JWT tokens. In production:
 
-The application uses SQLite as the database, which is perfect for development and testing. The database file (`banking.db`) is automatically created when you first run the application.
+- Use a strong, randomly generated key (at least 32 characters)
+- Never commit real secrets to version controlis automatically created in the `data/` directory when you first run the application.
 
 ### Models
 
-- **Account**: Represents a bank account with account number, holder name, type, and balance
-- **Transaction**: Represents a financial transaction (deposit or withdrawal) linked to an account
+- **User**: User accounts with authentication credentials (email, username, hashed password)
+- **Account**: Bank accounts with account number, holder name, type, and balance
+- **Transaction**: Financial transactions (deposits/withdrawals) linked to accounts
+
+### Database Schema
+
+All database models inherit from SQLAlchemy's declarative base and include:
+
+- Automatic table creation on startup
+- Timestamps (created_at, updated_at) where applicable
+- Proper indexes for performance
+- Foreign key relationshipsabase file (`banking.db`) is automatically created when you first run the application.
 
 ## Development
 
 ### Running Tests
 
 ```bash
-# Install test dependencies
-pip install pytest pytest-cov httpx
-
-# All tests
-pytest tests/ -v
+# Run all tests (unit + integration)
+pytest -v
 
 # Unit tests only
 pytest tests/unit/ -v
 
-# Integration tests only  
+# Integration tests only
 pytest tests/integration/ -v
 
-# With coverage
-pytest tests/ --cov=app --cov-report=html
+# Authentication tests
+pytest tests/unit/test_auth_service.py tests/unit/test_user_repository.py -v
+pytest tests/integration/test_auth.py -v
+
+# With coverage report
+pytest --cov=app --cov-report=html
+# Open htmlcov/index.html to view coverage
+
+# Run tests with output
+pytest -v -s
 ```
+
+### Test Structure
+
+The test suite includes:
+
+- **Unit Tests**: Test individual components in isolation (services, repositories)
+- **Integration Tests**: Test API endpoints end-to-end with database
+- **Fixtures**: Reusable test setup in `conftest.py` files
+- **Coverage**: Comprehensive test coverage of all major functionality
 
 ### Code Formatting
 
@@ -245,27 +361,68 @@ ruff check .
 docker-compose build
 
 # Start services
-docker-compose up
 
-# Start in detached mode
+# Remove volumes (clears database)
+docker-compose down -v
+```
+
+## Security Best Practices
+
+- ✅ Passwords are hashed using bcrypt (never stored in plain text)
+- ✅ JWT tokens expire after 30 minutes
+- ✅ OAuth2 password bearer flow for secure authentication
+- ✅ Email validation on registration
+- ✅ Password minimum length enforcement (8 characters)
+- ⚠️ **Production**: Use HTTPS to protect tokens in transit
+- ⚠️ **Production**: Change the default `SECRET_KEY` to a strong random value
+- ⚠️ **Production**: Use a production-grade database (PostgreSQL, MySQL)
+- ⚠️ **Production**: Implement rate limiting on authentication endpointsker-compose up
+
+### Start in detached mode
+
 docker-compose up -d
 
-# View logs
+### View logs
+
 docker-compose logs -f
 
-# Stop services
+### Stop services
+
 docker-compose down
 
-# Rebuild and restart
+### Rebuild and restart
+
 docker-compose up --build
-```
+
+```plaintext
+
+## Architecture
+
+This project follows clean architecture principles with clear separation of concerns:
+
+- **API Layer** (`api/v1/endpoints/`): HTTP request/response handling
+- **Service Layer** (`services/`): Business logic and orchestration
+- **Repository Layer** (`repositories/`): Data access and persistence
+- **Models** (`models/`): SQLAlchemy database models
+- **Schemas** (`schemas/`): Pydantic models for validation and serialization
+- **Core** (`core/`): Configuration, database setup, and dependencies
+
+## Additional Documentation
+
+- **[AUTH_GUIDE.md](AUTH_GUIDE.md)** - Comprehensive authentication guide with examples
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture and design decisions
+- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Detailed project structure
+- **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Database migration guide
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Submit a pull request
+4. Run tests (`pytest`)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
 ## License
 
@@ -274,3 +431,17 @@ This project is provided as-is for educational and development purposes.
 ## Support
 
 For issues and questions, please open an issue on the GitHub repository.
+
+## Roadmap
+
+Future enhancements planned:
+- [ ] Password reset functionality
+- [ ] Email verification
+- [ ] Refresh token support
+- [ ] Role-based access control (RBAC)
+- [ ] Account lockout after failed login attempts
+- [ ] OAuth2 social login (Google, GitHub)
+- [ ] API rate limiting
+- [ ] Logging and monitoring
+- [ ] Database migrations with Alembic
+- [ ] CI/CD pipeline

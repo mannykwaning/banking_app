@@ -7,7 +7,8 @@ from typing import List
 
 from app.schemas import TransactionCreate, TransactionResponse
 from app.services import TransactionService
-from app.core.dependencies import get_transaction_service
+from app.core.dependencies import get_transaction_service, get_current_active_user
+from app.models.user import User
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
@@ -21,6 +22,7 @@ router = APIRouter(prefix="/transactions", tags=["Transactions"])
 def create_transaction(
     transaction: TransactionCreate,
     transaction_service: TransactionService = Depends(get_transaction_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Create a new transaction (deposit or withdrawal)."""
     return transaction_service.create_transaction(
@@ -40,6 +42,7 @@ def list_transactions(
     skip: int = 0,
     limit: int = 100,
     transaction_service: TransactionService = Depends(get_transaction_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """List all transactions with pagination."""
     return transaction_service.get_all_transactions(skip=skip, limit=limit)
@@ -53,6 +56,7 @@ def list_transactions(
 def get_transaction(
     transaction_id: int,
     transaction_service: TransactionService = Depends(get_transaction_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Get a specific transaction by ID."""
     return transaction_service.get_transaction_by_id(transaction_id)
