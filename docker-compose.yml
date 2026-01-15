@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  banking-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: banking-app-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./banking.db:/app/banking.db
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
