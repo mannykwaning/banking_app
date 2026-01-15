@@ -24,12 +24,25 @@ banking_app/
 ├── config.py            # Configuration and environment variables
 ├── database.py          # Database models and setup
 ├── schemas.py           # Pydantic schemas for validation
+├── repositories.py      # Repository layer for data access
+├── services.py          # Service layer for business logic
 ├── requirements.txt     # Python dependencies
 ├── Dockerfile           # Docker container configuration
 ├── docker-compose.yml   # Docker Compose orchestration
 ├── .env.example         # Environment variables template
 └── README.md           # This file
 ```
+
+## Architecture
+
+This application follows a layered architecture pattern:
+
+- **API Layer (main.py)**: FastAPI route handlers
+- **Service Layer (services.py)**: Business logic and orchestration
+- **Repository Layer (repositories.py)**: Data access and database operations
+- **Data Layer (database.py)**: SQLAlchemy models and database configuration
+
+This separation of concerns improves testability, maintainability, and follows SOLID principles.
 
 ## Quick Start
 
