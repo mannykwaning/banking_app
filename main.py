@@ -4,6 +4,7 @@ Main FastAPI application for the Banking App.
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from contextlib import asynccontextmanager
 import random
 import string
 
@@ -17,21 +18,24 @@ from schemas import (
     TransactionResponse
 )
 
+
+# Lifespan event handler
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize database tables on startup."""
+    create_tables()
+    yield
+
+
 # Create FastAPI app
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="A starter banking application backend API with FastAPI and SQLite",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
-
-
-# Create tables on startup
-@app.on_event("startup")
-def startup_event():
-    """Initialize database tables on startup."""
-    create_tables()
 
 
 @app.get("/", tags=["Root"])
