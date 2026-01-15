@@ -3,10 +3,10 @@ Main FastAPI application for the Banking App.
 """
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import List
 from contextlib import asynccontextmanager
-import random
-import string
+import secrets
 
 from config import settings
 from database import get_db, create_tables, Account, Transaction
@@ -56,9 +56,20 @@ def health_check():
 
 
 # Helper function to generate account number
-def generate_account_number() -> str:
-    """Generate a random account number."""
-    return ''.join(random.choices(string.digits, k=10))
+def generate_account_number(db: Session) -> str:
+    """Generate a unique random account number."""
+    max_attempts = 100
+    for _ in range(max_attempts):
+        # Generate a secure random 10-digit account number
+        account_number = ''.join(str(secrets.randbelow(10)) for _ in range(10))
+        # Check if it already exists
+        existing = db.query(Account).filter(Account.account_number == account_number).first()
+        if not existing:
+            return account_number
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Unable to generate unique account number"
+    )
 
 
 # Account endpoints
@@ -71,7 +82,7 @@ def generate_account_number() -> str:
 def create_account(account: AccountCreate, db: Session = Depends(get_db)):
     """Create a new bank account."""
     # Generate unique account number
-    account_number = generate_account_number()
+    account_number = generate_account_number(db)
     
     # Create new account
     db_account = Account(

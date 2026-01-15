@@ -3,6 +3,12 @@ Configuration module for the Banking App API.
 Loads environment variables from .env file.
 """
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import secrets
+
+
+def generate_secret_key() -> str:
+    """Generate a secure random secret key."""
+    return secrets.token_hex(32)
 
 
 class Settings(BaseSettings):
@@ -19,8 +25,8 @@ class Settings(BaseSettings):
     # API Configuration
     api_prefix: str = "/api/v1"
     
-    # Security
-    secret_key: str = "your-secret-key-here-change-in-production"
+    # Security - Generate a random key if not provided
+    secret_key: str = generate_secret_key()
     
     model_config = SettingsConfigDict(
         env_file=".env",
