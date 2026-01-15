@@ -37,7 +37,8 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ### 3. Access Swagger UI
 
 Open your browser and navigate to:
-```
+
+```plaintext
 http://localhost:8000/docs
 ```
 
@@ -48,6 +49,7 @@ http://localhost:8000/docs
 1. Navigate to the `/api/v1/auth/signup` endpoint in Swagger UI
 2. Click "Try it out"
 3. Enter user details:
+
    ```json
    {
      "email": "user@example.com",
@@ -56,6 +58,7 @@ http://localhost:8000/docs
      "full_name": "John Doe"
    }
    ```
+
 4. Click "Execute"
 
 ### Step 2: Login and Get Token
@@ -79,6 +82,7 @@ http://localhost:8000/docs
 ### Step 4: Use Protected Endpoints
 
 Now you can use any protected endpoint (accounts, transactions, etc.):
+
 1. Navigate to any endpoint (e.g., `/api/v1/accounts`)
 2. Click "Try it out"
 3. Fill in the required parameters
@@ -109,6 +113,7 @@ The authorization header will be automatically included in all requests.
 ### Protected Endpoints
 
 All account and transaction endpoints now require authentication:
+
 - `/api/v1/accounts/*` - All account operations
 - `/api/v1/transactions/*` - All transaction operations
 
@@ -156,7 +161,7 @@ response = requests.post(f"{BASE_URL}/accounts", json=account_data, headers=head
 print(f"New account: {response.json()}")
 ```
 
-### cURL Examples
+### CURL Examples
 
 ```bash
 # Sign up
@@ -262,7 +267,7 @@ python main.py      # Restart server to create new database
 
 ## Project Structure
 
-```
+```plaintext
 app/
 ├── models/
 │   └── user.py              # User database model
