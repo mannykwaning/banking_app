@@ -23,6 +23,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY . .
 
+# Create data directory for database
+RUN mkdir -p /app/data
+
 # Expose port
 EXPOSE 8000
 

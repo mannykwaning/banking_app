@@ -63,6 +63,7 @@ db.sqlite3-journal
 
 # Banking App Database
 banking.db
+data/
 
 # Flask stuff:
 instance/
@@ -141,6 +142,7 @@ celerybeat.pid
 .env
 .envrc
 .venv
+banking_env/
 env/
 venv/
 ENV/
