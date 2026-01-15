@@ -18,17 +18,27 @@ A starter banking application backend API built with FastAPI and SQLite, featuri
 
 ## Project Structure
 
-```
-banking_app/
-├── main.py              # FastAPI application entry point
-├── config.py            # Configuration and environment variables
-├── database.py          # Database models and setup
-├── schemas.py           # Pydantic schemas for validation
-├── requirements.txt     # Python dependencies
-├── Dockerfile           # Docker container configuration
-├── docker-compose.yml   # Docker Compose orchestration
-├── .env.example         # Environment variables template
-└── README.md           # This file
+```plaintext
+   banking_app_backend/
+   ├── app/
+   │   ├── __init__.py
+   │   ├── main.py              # FastAPI application entry point
+   │   ├── config.py            # Configuration and environment variables
+   │   ├── database.py          # Database models and setup
+   │   ├── schemas.py           # Pydantic schemas for validation
+   │   ├── models/              # SQLAlchemy models
+   │   │   └── __init__.py
+   │   └── routers/             # API route handlers
+   │       └── __init__.py
+   ├── tests/
+   │   ├── unit/
+   │   └── integration/
+   ├── requirements.txt         # Python dependencies
+   ├── Dockerfile               # Docker container configuration
+   ├── docker-compose.yml       # Docker Compose orchestration
+   ├── .env.example             # Environment variables template
+   ├── .gitignore
+   └── README.md               # This file
 ```
 
 ## Quick Start
@@ -36,74 +46,85 @@ banking_app/
 ### Option 1: Using Docker (Recommended)
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/mannykwaning/banking_app.git
    cd banking_app
    ```
 
 2. **Create environment file**
+
    ```bash
    cp .env.example .env
    # Edit .env if needed to customize configuration
    ```
 
 3. **Build and run with Docker Compose**
+
    ```bash
    docker-compose up --build
    ```
 
 4. **Access the API**
-   - API: http://localhost:8000
-   - Swagger UI: http://localhost:8000/docs
-   - ReDoc: http://localhost:8000/redoc
+   - API: <http://localhost:8000>
+   - Swagger UI: <http://localhost:8000/docs>
+   - ReDoc: <http://localhost:8000/redoc>
 
 ### Option 2: Local Development
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/mannykwaning/banking_app.git
    cd banking_app
    ```
 
 2. **Create virtual environment**
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. **Install dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. **Create environment file**
+
    ```bash
    cp .env.example .env
    ```
 
 5. **Run the application**
+
    ```bash
    uvicorn main:app --reload
    ```
 
 6. **Access the API**
-   - API: http://localhost:8000
-   - Swagger UI: http://localhost:8000/docs
-   - ReDoc: http://localhost:8000/redoc
+   - API: <http://localhost:8000>
+   - Swagger UI: <http://localhost:8000/docs>
+   - ReDoc: <http://localhost:8000/redoc>
 
 ## API Endpoints
 
 ### Root & Health
+
 - `GET /` - Root endpoint with API information
 - `GET /health` - Health check endpoint
 
 ### Accounts
+
 - `POST /api/v1/accounts` - Create a new bank account
 - `GET /api/v1/accounts` - List all accounts
 - `GET /api/v1/accounts/{account_id}` - Get account details with transactions
 - `DELETE /api/v1/accounts/{account_id}` - Delete an account
 
 ### Transactions
+
 - `POST /api/v1/transactions` - Create a new transaction (deposit/withdrawal)
 - `GET /api/v1/transactions` - List all transactions
 - `GET /api/v1/transactions/{transaction_id}` - Get transaction details
