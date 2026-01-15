@@ -1,5 +1,5 @@
 """
-Configuration module for the Banking App API.
+Core configuration module for the Banking App API.
 Loads environment variables from .env file.
 """
 
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # API Configuration
-    api_prefix: str = "/api/v1"
+    api_v1_prefix: str = "/api/v1"
 
     # Security - Generate a random key if not provided
     secret_key: str = generate_secret_key()

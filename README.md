@@ -191,8 +191,17 @@ The application uses SQLite as the database, which is perfect for development an
 # Install test dependencies
 pip install pytest pytest-cov httpx
 
-# Run tests (when implemented)
-pytest
+# All tests
+pytest tests/ -v
+
+# Unit tests only
+pytest tests/unit/ -v
+
+# Integration tests only  
+pytest tests/integration/ -v
+
+# With coverage
+pytest tests/ --cov=app --cov-report=html
 ```
 
 ### Code Formatting
