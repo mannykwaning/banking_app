@@ -3,14 +3,16 @@ Main FastAPI application for the Banking App.
 Production-ready structure with repository and service layer pattern.
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import time
 import logging
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from app.core.config import settings
-from app.core.database import create_tables
+from app.core.database import create_tables, get_db
 from app.core.logging import setup_logging, get_logger
 from app.api.v1 import router as api_v1_router
 from app.core.error_handlers import register_exception_handlers
@@ -32,7 +34,7 @@ logger = get_logger(__name__)
 # Lifespan event handler
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialize database tables on startup."""
+    """Initialize database tables on startup and cleanup on shutdown."""
     logger.info(
         "Starting application",
         extra={
@@ -44,8 +46,22 @@ async def lifespan(app: FastAPI):
     )
     create_tables()
     logger.info("Database tables created successfully")
+    logger.info("Application startup complete")
+
     yield
-    logger.info("Shutting down application")
+
+    # Graceful shutdown - cleanup resources
+    logger.info("Initiating graceful shutdown")
+    try:
+        # Close database connections
+        from app.core.database import engine
+
+        engine.dispose()
+        logger.info("Database connections closed")
+    except Exception as e:
+        logger.error(f"Error during shutdown cleanup: {str(e)}")
+    finally:
+        logger.info("Application shutdown complete")
 
 
 # Create FastAPI app
@@ -112,23 +128,33 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-@app.get("/", tags=["Root"])
-def root():
-    """Root endpoint - health check."""
-    logger.debug("Root endpoint accessed")
-    return {
-        "message": "Welcome to the Banking App API",
-        "version": settings.app_version,
-        "status": "operational",
-        "docs": "/docs",
-    }
-
-
 @app.get("/health", tags=["Health"])
 def health_check():
-    """Health check endpoint."""
+    """Basic liveness check - returns healthy if service is running."""
     logger.debug("Health check endpoint accessed")
     return {"status": "healthy", "service": settings.app_name}
+
+
+@app.get("/health/ready", tags=["Health"])
+def health_ready(db: Session = Depends(get_db)):
+    """Readiness check - verifies database connectivity."""
+    try:
+        # Ping the database by executing a simple query
+        db.execute(text("SELECT 1"))
+        logger.debug("Health ready check passed")
+        return {
+            "status": "ready",
+            "service": settings.app_name,
+            "database": "connected",
+        }
+    except Exception as e:
+        logger.error(f"Health ready check failed: {str(e)}")
+        return {
+            "status": "not_ready",
+            "service": settings.app_name,
+            "database": "disconnected",
+            "error": str(e),
+        }
 
 
 # Include API v1 router

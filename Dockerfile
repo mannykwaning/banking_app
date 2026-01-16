@@ -42,5 +42,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Command to run the application with graceful shutdown
+# --timeout-graceful-shutdown: Time to wait for graceful shutdown (default 30s)
+# --timeout-keep-alive: Keep-alive timeout (default 5s)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-graceful-shutdown", "30", "--timeout-keep-alive", "5"]

@@ -16,10 +16,13 @@ services:
     env_file:
       - .env.development
     restart: unless-stopped
+    # Graceful shutdown configuration
+    stop_signal: SIGTERM
+    stop_grace_period: 45s
     networks:
       - banking-network
     # Override CMD for development with hot reload
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload --timeout-graceful-shutdown 30 --timeout-keep-alive 5
     # Run as root in dev to avoid permission issues with mounted volumes
     user: root
 

@@ -38,6 +38,87 @@ A production-ready banking application backend API built with FastAPI and SQLite
   - Admin API for error monitoring and reporting
   - Proper HTTP status codes for all error types
 
+## Table of Contents
+
+- [Banking App API](#banking-app-api)
+  - [Features](#features)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Project Structure](#project-structure)
+  - [Quick Start](#quick-start)
+    - [Using Makefile (Recommended)](#using-makefile-recommended)
+      - [Quick Commands](#quick-commands)
+    - [Option 1: Using Docker (Recommended)](#option-1-using-docker-recommended)
+      - [Development Environment](#development-environment)
+      - [Production Environment](#production-environment)
+    - [Option 2: Local Development](#option-2-local-development)
+  - [Environment Configuration](#environment-configuration)
+    - [Quick Setup](#quick-setup)
+  - [API Endpoints](#api-endpoints)
+    - [Root \& Health (Public)](#root--health-public)
+    - [Authentication (Public)](#authentication-public)
+    - [Accounts (Protected - Requires Authentication)](#accounts-protected---requires-authentication)
+    - [Transactions (Protected - Requires Authentication)](#transactions-protected---requires-authentication)
+    - [Transfers (Protected - Requires Authentication) 💸](#transfers-protected---requires-authentication-)
+    - [Cards (Protected - Requires Authentication) 💳](#cards-protected---requires-authentication-)
+    - [Admin - Error Tracking (Protected - Requires Admin/Superuser) 🚨](#admin---error-tracking-protected---requires-adminsuperuser-)
+  - [Example Usage](#example-usage)
+    - [Authentication Flow](#authentication-flow)
+      - [1. Register a New User](#1-register-a-new-user)
+      - [2. Login to Get Access Token](#2-login-to-get-access-token)
+    - [Using Protected Endpoints](#using-protected-endpoints)
+      - [Create an Account](#create-an-account)
+      - [Make a Deposit](#make-a-deposit)
+      - [Issue a Card 💳](#issue-a-card-)
+      - [Get Card Details (Sensitive Data)](#get-card-details-sensitive-data)
+      - [Block a Card](#block-a-card)
+      - [Make a Withdrawal](#make-a-withdrawal)
+      - [Get Account Details](#get-account-details)
+    - [Money Transfers 💸](#money-transfers-)
+      - [Create Internal Transfer](#create-internal-transfer)
+      - [Create External Transfer](#create-external-transfer)
+      - [Check Transfer Status](#check-transfer-status)
+    - [Account Statements 📊](#account-statements-)
+      - [Generate Statement (Default: Last 30 Days)](#generate-statement-default-last-30-days)
+      - [Generate Statement with Custom Date Range](#generate-statement-with-custom-date-range)
+    - [Error Tracking \& Monitoring 🚨](#error-tracking--monitoring-)
+      - [Get Error Summary (Admin Only)](#get-error-summary-admin-only)
+      - [List Recent Errors (Admin Only)](#list-recent-errors-admin-only)
+    - [Using Swagger UI](#using-swagger-ui)
+  - [Environment Variables](#environment-variables)
+    - [Database](#database)
+    - [Models](#models)
+    - [Database Schema](#database-schema)
+  - [Development](#development)
+    - [Makefile Commands Reference](#makefile-commands-reference)
+      - [Local Development](#local-development)
+      - [Docker Operations](#docker-operations)
+      - [Testing](#testing)
+      - [Database Management](#database-management)
+      - [Code Quality](#code-quality)
+      - [Health \& Monitoring](#health--monitoring)
+      - [Cleanup](#cleanup)
+      - [Production](#production)
+      - [Information](#information)
+    - [Running Tests](#running-tests)
+    - [Test Structure](#test-structure)
+    - [Code Formatting](#code-formatting)
+  - [Docker Commands](#docker-commands)
+  - [Security Best Practices](#security-best-practices)
+    - [Start in detached mode](#start-in-detached-mode)
+    - [View logs](#view-logs)
+    - [Stop services](#stop-services)
+    - [Rebuild and restart](#rebuild-and-restart)
+  - [Architecture](#architecture)
+  - [Additional Documentation](#additional-documentation)
+    - [Core Documentation](#core-documentation)
+    - [Transfer System Documentation 💸](#transfer-system-documentation-)
+    - [Card System Documentation 💳](#card-system-documentation-)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Support](#support)
+  - [Roadmap](#roadmap)
+
 ## Prerequisites
 
 - Python 3.11+ (for local development)
@@ -118,6 +199,56 @@ banking_app_backend/
 ```
 
 ## Quick Start
+
+### Using Makefile (Recommended)
+
+The project includes a comprehensive Makefile to simplify common tasks. View all available commands:
+
+```bash
+make help
+```
+
+#### Quick Commands
+
+```bash
+# Local Development
+make install          # Install dependencies
+make dev             # Run app locally (hot-reload)
+
+# Docker Development
+make docker-dev      # Run in Docker (foreground)
+make docker-dev-d    # Run in Docker (background)
+make docker-stop     # Stop containers
+make logs            # View logs
+
+# Docker Production
+make docker-prod     # Run in production mode
+make docker-prod-d   # Run in production (background)
+make logs-prod       # View production logs
+
+# Testing
+make test            # Run all tests
+make test-unit       # Run unit tests
+make test-integration # Run integration tests
+make test-cov        # Run tests with coverage
+
+# Health Checks
+make health          # Check API health
+make health-ready    # Check DB connectivity
+make docs            # Open API docs in browser
+
+# Cleanup
+make clean           # Clean generated files
+make db-clean        # Remove database
+make docker-clean    # Clean Docker resources
+make clean-all       # Clean everything
+
+# Information
+make status          # Show container/service status
+make info            # Show project information
+```
+
+For a complete list of commands with descriptions, run `make help`.
 
 ### Option 1: Using Docker (Recommended)
 
@@ -714,11 +845,108 @@ All database models inherit from SQLAlchemy's declarative base and include:
 
 ## Development
 
+### Makefile Commands Reference
+
+The project includes a Makefile that simplifies development workflows. All commands are organized by category:
+
+#### Local Development
+
+```bash
+make install          # Install Python dependencies
+make dev              # Run app locally with hot-reload
+make prod-local       # Run app locally in production mode
+make venv             # Create virtual environment
+```
+
+#### Docker Operations
+
+```bash
+# Development Mode
+make docker-build     # Build Docker image
+make docker-dev       # Run in Docker (foreground)
+make docker-dev-d     # Run in Docker (detached/background)
+make logs             # View logs (follow mode)
+
+# Production Mode
+make docker-prod      # Run in production (foreground)
+make docker-prod-d    # Run in production (detached)
+make logs-prod        # View production logs
+
+# Container Management
+make docker-stop      # Stop containers
+make docker-down      # Stop and remove containers
+make docker-clean     # Remove containers, volumes, images
+make docker-restart   # Restart containers
+make shell            # Open shell in container
+```
+
+#### Testing
+
+```bash
+make test             # Run all tests
+make test-unit        # Run unit tests only
+make test-integration # Run integration tests only
+make test-cov         # Run tests with coverage report
+make test-cov-report  # Generate detailed coverage reports
+make test-watch       # Run tests in watch mode (requires pytest-watch)
+```
+
+#### Database Management
+
+```bash
+make db-clean         # Remove database file
+make db-reset         # Reset database (remove and recreate)
+```
+
+#### Code Quality
+
+```bash
+make format           # Format code with black
+make lint             # Lint code with flake8
+make check            # Format and lint code
+```
+
+#### Health & Monitoring
+
+```bash
+make health           # Check API health endpoint
+make health-ready     # Check API readiness (DB connectivity)
+make docs             # Open API documentation in browser
+```
+
+#### Cleanup
+
+```bash
+make clean            # Clean generated files (__pycache__, .pyc, etc.)
+make clean-all        # Clean everything (Docker, DB, generated files)
+```
+
+#### Production
+
+```bash
+make prod-setup              # Setup production environment
+make graceful-shutdown-test  # Test graceful shutdown
+```
+
+#### Information
+
+```bash
+make status           # Show status of containers and services
+make info             # Show project information and endpoints
+make help             # Display all available commands
+```
+
 ### Running Tests
 
 ```bash
-# Run all tests (unit + integration)
-pytest -v
+# Using Makefile (Recommended)
+make test              # Run all tests
+make test-unit         # Unit tests only
+make test-integration  # Integration tests only
+make test-cov          # With coverage report
+
+# Traditional pytest commands
+pytest -v              # Run all tests (unit + integration)
 
 # Unit tests only
 pytest tests/unit/ -v

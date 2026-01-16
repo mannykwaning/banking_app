@@ -1,0 +1,199 @@
+================================================================================
+                    TEST COVERAGE REPORT SUMMARY
+                    Banking App Backend API
+                    Generated: January 15, 2026
+================================================================================
+
+OVERALL STATISTICS
+------------------
+Total Tests Run:        245 tests
+Tests Passed:           245 (100%)
+Tests Failed:           0 (0%)
+Test Duration:          ~40 seconds
+
+Code Coverage:          94% (1576 statements, 97 missed)
+Files with 100%:        27 files
+Files with <100%:       17 files
+
+================================================================================
+
+COVERAGE BY COMPONENT
+---------------------
+
+API Endpoints (app/api/v1/endpoints/):
+  ✓ accounts.py              100%
+  ✓ cards.py                 100%
+  ✓ transactions.py          100%
+  ✓ transfers.py             100%
+  ⚠ admin_errors.py           86% (5 lines missing: 172-181)
+  ⚠ auth.py                   96% (2 lines missing: 175-176)
+
+Core Components (app/core/):
+  ✓ encryption.py            100%
+  ✓ exceptions.py            100%
+  ⚠ config.py                 87% (6 lines missing: 34-38, 98, 103, 108)
+  ⚠ database.py               81% (4 lines missing: 47-51)
+  ⚠ dependencies.py           95% (2 lines missing: 65, 75)
+  ⚠ error_handlers.py         84% (7 lines missing: 37, 80-94, 145-160)
+  ⚠ error_utils.py            95% (4 lines missing: 110, 218, 230, 232)
+  ⚠ logging.py                79% (12 lines missing: 40-52, 89-92)
+
+Models (app/models/):
+  ✓ account.py               100%
+  ✓ transaction.py           100%
+  ⚠ card.py                   97% (1 line missing: 59)
+  ⚠ error_log.py              95% (1 line missing: 44)
+  ⚠ user.py                   94% (1 line missing: 29)
+
+Repositories (app/repositories/):
+  ✓ account_repository.py    100%
+  ✓ card_repository.py       100%
+  ✓ transaction_repository.py 100%
+  ✓ user_repository.py       100%
+  ⚠ error_log_repository.py   64% (21 lines missing: 50-65, 69, 101-135, 213-218)
+
+Schemas (app/schemas/):
+  ✓ account.py               100%
+  ✓ transaction.py           100%
+  ✓ user.py                  100%
+  ✓ error_log.py             100%
+  ⚠ card.py                   96% (2 lines missing: 40, 42)
+
+Services (app/services/):
+  ✓ account_service.py       100%
+  ✓ card_service.py          100%
+  ✓ transaction_service.py   100%
+  ⚠ auth_service.py           98% (2 lines missing: 87-88)
+  ⚠ error_log_service.py      71% (9 lines missing: 57-76, 123, 143-148)
+  ⚠ transfer_service.py       91% (11 lines missing: 49-52, 140-148, 301-306, 404-409, 594)
+
+Main Application:
+  ⚠ main.py                   88% (7 lines missing: 61-62, 150-152, 165-167)
+
+================================================================================
+
+TEST BREAKDOWN
+--------------
+
+Integration Tests (81 tests):
+  ✓ test_accounts.py         9 tests
+  ✓ test_admin.py           12 tests
+  ✓ test_auth.py            16 tests
+  ✓ test_cards.py           16 tests
+  ✓ test_health.py           8 tests
+  ✓ test_transactions.py     5 tests
+  ✓ test_transfers.py       15 tests
+
+Unit Tests (164 tests):
+  ✓ test_account_repository.py    9 tests
+  ✓ test_account_service.py      14 tests
+  ✓ test_admin_functionality.py   9 tests
+  ✓ test_auth_service.py         12 tests
+  ✓ test_card_repository.py       8 tests
+  ✓ test_card_service.py         17 tests
+  ✓ test_encryption.py            9 tests
+  ✓ test_error_handling.py       20 tests
+  ✓ test_transaction_repository.py 5 tests
+  ✓ test_transaction_service.py  12 tests
+  ✓ test_transfer_schemas.py     17 tests
+  ✓ test_transfer_service.py     23 tests
+  ✓ test_user_repository.py       9 tests
+
+================================================================================
+
+AREAS NEEDING ADDITIONAL COVERAGE
+----------------------------------
+
+HIGH PRIORITY (< 80% coverage):
+  1. app/repositories/error_log_repository.py (64%)
+     - Missing: Error log filtering and pagination
+     - Missing: Database query methods for error logs
+
+  2. app/core/logging.py (79%)
+     - Missing: File handler initialization
+     - Missing: Log rotation configuration
+
+MEDIUM PRIORITY (80-90% coverage):
+  1. app/core/database.py (81%)
+     - Missing: Database initialization edge cases
+
+  2. app/core/error_handlers.py (84%)
+     - Missing: Some exception handler edge cases
+
+  3. app/api/v1/endpoints/admin_errors.py (86%)
+     - Missing: Admin error endpoint edge cases
+
+  4. app/core/config.py (87%)
+     - Missing: Configuration validation scenarios
+
+  5. main.py (88%)
+     - Missing: Application startup/shutdown edge cases
+
+LOW PRIORITY (90-95% coverage):
+  1. app/services/transfer_service.py (91%)
+  2. app/core/error_utils.py (95%)
+  3. app/core/dependencies.py (95%)
+  4. app/models/error_log.py (95%)
+
+================================================================================
+
+ACHIEVEMENTS
+------------
+
+✓ 27 files with 100% test coverage
+✓ 94% overall code coverage
+✓ 245 tests all passing
+✓ Zero test failures
+✓ Comprehensive integration test suite (81 tests)
+✓ Robust unit test suite (164 tests)
+✓ Health check endpoints fully tested
+✓ Authentication and authorization tested
+✓ Card management system tested
+✓ Transfer functionality tested
+✓ Account operations tested
+✓ Transaction processing tested
+
+================================================================================
+
+COVERAGE FILES GENERATED
+------------------------
+
+1. coverage_report.txt
+   - Full coverage report with all statistics
+
+2. coverage_report_detailed.txt
+   - Detailed report showing missing lines
+
+3. htmlcov/index.html
+   - Interactive HTML coverage report
+   - Visual line-by-line coverage
+   - Browse at: file://./htmlcov/index.html
+
+4. COVERAGE_SUMMARY.txt (this file)
+   - Executive summary of test coverage
+
+================================================================================
+
+RECOMMENDATIONS
+---------------
+
+1. Add tests for error_log_repository filtering and pagination methods
+2. Test file logging configuration edge cases
+3. Add tests for database connection failure scenarios
+4. Test all exception handler code paths
+5. Add tests for admin error endpoint edge cases
+6. Test application startup/shutdown with various configurations
+
+================================================================================
+
+NEXT STEPS
+----------
+
+1. Run coverage report regularly (after each major change)
+2. Aim to maintain > 90% overall coverage
+3. Add tests for any new features before merging
+4. Review uncovered code paths for potential issues
+5. Consider adding property-based testing for complex logic
+6. Set up CI/CD to fail if coverage drops below threshold
+
+================================================================================
