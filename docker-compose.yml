@@ -8,14 +8,11 @@ services:
       - "8000:8000"
     volumes:
       - banking-data:/app/data
+      - banking-logs:/app/logs
     environment:
-      - DATABASE_URL=sqlite:////app/data/banking.db
-      - APP_NAME=Banking App API
-      - APP_VERSION=1.0.0
-      - DEBUG=False
-      - API_V1_PREFIX=/api/v1
+      - ENVIRONMENT=production
     env_file:
-      - .env
+      - .env.production
     restart: unless-stopped
     # Healthcheck is defined in Dockerfile
     networks:
@@ -23,6 +20,8 @@ services:
 
 volumes:
   banking-data:
+    driver: local
+  banking-logs:
     driver: local
 
 networks:

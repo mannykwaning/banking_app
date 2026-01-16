@@ -4,11 +4,14 @@ Transaction endpoints for the API.
 
 from fastapi import APIRouter, Depends, status
 from typing import List
+import logging
 
 from app.schemas import TransactionCreate, TransactionResponse
 from app.services import TransactionService
 from app.core.dependencies import get_transaction_service, get_current_active_user
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
@@ -25,12 +28,25 @@ def create_transaction(
     current_user: User = Depends(get_current_active_user),
 ):
     """Create a new transaction (deposit or withdrawal)."""
-    return transaction_service.create_transaction(
+    logger.info(
+        "Create transaction endpoint called",
+        extra={
+            "user_id": current_user.id,
+            "account_id": transaction.account_id,
+            "type": transaction.transaction_type,
+        },
+    )
+    result = transaction_service.create_transaction(
         account_id=transaction.account_id,
         transaction_type=transaction.transaction_type,
         amount=transaction.amount,
         description=transaction.description,
     )
+    logger.info(
+        "Create transaction endpoint successful",
+        extra={"user_id": current_user.id, "transaction_id": result.id},
+    )
+    return result
 
 
 @router.get(

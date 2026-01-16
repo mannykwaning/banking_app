@@ -5,10 +5,13 @@ Account service for business logic.
 from sqlalchemy.orm import Session
 from typing import List
 import secrets
+import logging
 from fastapi import HTTPException, status
 
 from app.repositories import AccountRepository
 from app.models import Account
+
+logger = logging.getLogger(__name__)
 
 
 class AccountService:
@@ -36,28 +39,53 @@ class AccountService:
         self, account_holder: str, account_type: str, initial_balance: float = 0.0
     ) -> Account:
         """Create a new bank account with business logic validation."""
+        logger.info(
+            "Creating new account",
+            extra={
+                "account_holder": account_holder,
+                "account_type": account_type,
+                "initial_balance": initial_balance,
+            },
+        )
+
         # Generate unique account number
         account_number = self.generate_account_number()
 
         # Validate initial balance
         if initial_balance < 0:
+            logger.warning(
+                "Account creation failed - negative initial balance",
+                extra={"initial_balance": initial_balance},
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Initial balance cannot be negative",
             )
 
         # Create account via repository
-        return self.repository.create(
+        account = self.repository.create(
             account_number=account_number,
             account_holder=account_holder,
             account_type=account_type,
             balance=initial_balance,
         )
 
+        logger.info(
+            "Account created successfully",
+            extra={
+                "account_id": account.id,
+                "account_number": account_number,
+                "account_holder": account_holder,
+            },
+        )
+        return account
+
     def get_account_by_id(self, account_id: int) -> Account:
         """Get an account by ID, raise 404 if not found."""
+        logger.debug("Fetching account by ID", extra={"account_id": account_id})
         account = self.repository.get_by_id(account_id)
         if not account:
+            logger.warning("Account not found", extra={"account_id": account_id})
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Account with ID {account_id} not found",
@@ -70,5 +98,7 @@ class AccountService:
 
     def delete_account(self, account_id: int) -> None:
         """Delete an account by ID."""
+        logger.info("Deleting account", extra={"account_id": account_id})
         account = self.get_account_by_id(account_id)
         self.repository.delete(account)
+        logger.info("Account deleted successfully", extra={"account_id": account_id})

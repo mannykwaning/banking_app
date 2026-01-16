@@ -4,12 +4,14 @@ Authentication endpoints for user signup and login.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+import logging
 
 from app.schemas.user import UserCreate, UserResponse, Token, LoginRequest
 from app.services.auth_service import AuthService
 from app.core.dependencies import get_auth_service, get_current_active_user
 from app.models.user import User
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -29,10 +31,21 @@ def signup(
     - **password**: Password (minimum 8 characters)
     - **full_name**: Optional full name
     """
+    logger.info(
+        "Signup endpoint called",
+        extra={"username": user_data.username, "email": user_data.email},
+    )
     try:
         user = auth_service.register_user(user_data)
+        logger.info(
+            "User signup successful",
+            extra={"user_id": user.id, "username": user.username},
+        )
         return user
     except ValueError as e:
+        logger.warning(
+            "Signup failed", extra={"username": user_data.username, "error": str(e)}
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
@@ -54,10 +67,16 @@ def login(
 
     Returns a bearer token for authentication.
     """
+    logger.info("Login endpoint called", extra={"username": form_data.username})
     try:
         token = auth_service.login(form_data.username, form_data.password)
+        logger.info("Login endpoint successful", extra={"username": form_data.username})
         return token
     except ValueError as e:
+        logger.warning(
+            "Login endpoint failed",
+            extra={"username": form_data.username, "error": str(e)},
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e),
@@ -98,4 +117,8 @@ def get_current_user_info(
 
     Requires authentication (Bearer token).
     """
+    logger.debug(
+        "Get current user info endpoint called",
+        extra={"user_id": current_user.id, "username": current_user.username},
+    )
     return current_user

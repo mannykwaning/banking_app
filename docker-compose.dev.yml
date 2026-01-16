@@ -12,13 +12,9 @@ services:
       - ./app:/app/app
       - ./main.py:/app/main.py
     environment:
-      - DATABASE_URL=sqlite:////app/data/banking_dev.db
-      - APP_NAME=Banking App API (Dev)
-      - APP_VERSION=1.0.0-dev
-      - DEBUG=True
-      - API_V1_PREFIX=/api/v1
+      - ENVIRONMENT=development
     env_file:
-      - .env
+      - .env.development
     restart: unless-stopped
     networks:
       - banking-network

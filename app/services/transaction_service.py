@@ -4,10 +4,13 @@ Transaction service for business logic.
 
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import logging
 from fastapi import HTTPException, status
 
 from app.repositories import AccountRepository, TransactionRepository
 from app.models import Transaction
+
+logger = logging.getLogger(__name__)
 
 
 class TransactionService:
@@ -26,9 +29,22 @@ class TransactionService:
         description: Optional[str] = None,
     ) -> Transaction:
         """Create a new transaction with business logic validation."""
+        logger.info(
+            "Creating transaction",
+            extra={
+                "account_id": account_id,
+                "transaction_type": transaction_type,
+                "amount": amount,
+            },
+        )
+
         # Verify account exists
         account = self.account_repository.get_by_id(account_id)
         if not account:
+            logger.warning(
+                "Transaction failed - account not found",
+                extra={"account_id": account_id},
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Account with ID {account_id} not found",
@@ -37,6 +53,10 @@ class TransactionService:
         # Validate transaction type
         valid_types = ["deposit", "withdrawal"]
         if transaction_type not in valid_types:
+            logger.warning(
+                "Transaction failed - invalid type",
+                extra={"account_id": account_id, "transaction_type": transaction_type},
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Transaction type must be one of: {', '.join(valid_types)}",
@@ -44,6 +64,10 @@ class TransactionService:
 
         # Validate amount
         if amount <= 0:
+            logger.warning(
+                "Transaction failed - invalid amount",
+                extra={"account_id": account_id, "amount": amount},
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Transaction amount must be positive",
@@ -52,6 +76,14 @@ class TransactionService:
         # Handle withdrawal - check sufficient balance
         if transaction_type == "withdrawal":
             if account.balance < amount:
+                logger.warning(
+                    "Transaction failed - insufficient balance",
+                    extra={
+                        "account_id": account_id,
+                        "balance": account.balance,
+                        "amount": amount,
+                    },
+                )
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Insufficient balance. Available: {account.balance}, Requested: {amount}",
@@ -64,17 +96,35 @@ class TransactionService:
         self.account_repository.update_balance(account, new_balance)
 
         # Create transaction record
-        return self.repository.create(
+        transaction = self.repository.create(
             account_id=account_id,
             transaction_type=transaction_type,
             amount=amount,
             description=description,
         )
 
+        logger.info(
+            "Transaction completed successfully",
+            extra={
+                "transaction_id": transaction.id,
+                "account_id": account_id,
+                "transaction_type": transaction_type,
+                "amount": amount,
+                "new_balance": new_balance,
+            },
+        )
+        return transaction
+
     def get_transaction_by_id(self, transaction_id: int) -> Transaction:
         """Get a transaction by ID, raise 404 if not found."""
+        logger.debug(
+            "Fetching transaction by ID", extra={"transaction_id": transaction_id}
+        )
         transaction = self.repository.get_by_id(transaction_id)
         if not transaction:
+            logger.warning(
+                "Transaction not found", extra={"transaction_id": transaction_id}
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Transaction with ID {transaction_id} not found",

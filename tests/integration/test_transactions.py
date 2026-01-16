@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-def test_create_deposit_transaction(client: TestClient):
+def test_create_deposit_transaction(client: TestClient, auth_headers: dict):
     """Test creating a deposit transaction."""
     # Create an account first
     account_response = client.post(
@@ -16,6 +16,7 @@ def test_create_deposit_transaction(client: TestClient):
             "account_type": "checking",
             "initial_balance": 100.0,
         },
+        headers=auth_headers,
     )
     account_id = account_response.json()["id"]
 
@@ -28,6 +29,7 @@ def test_create_deposit_transaction(client: TestClient):
             "amount": 50.0,
             "description": "Test deposit",
         },
+        headers=auth_headers,
     )
     assert response.status_code == 201
     data = response.json()
@@ -37,11 +39,11 @@ def test_create_deposit_transaction(client: TestClient):
     assert data["description"] == "Test deposit"
 
     # Verify account balance increased
-    account = client.get(f"/api/v1/accounts/{account_id}").json()
+    account = client.get(f"/api/v1/accounts/{account_id}", headers=auth_headers).json()
     assert account["balance"] == 150.0
 
 
-def test_create_withdrawal_transaction(client: TestClient):
+def test_create_withdrawal_transaction(client: TestClient, auth_headers: dict):
     """Test creating a withdrawal transaction."""
     # Create an account
     account_response = client.post(
@@ -51,6 +53,7 @@ def test_create_withdrawal_transaction(client: TestClient):
             "account_type": "savings",
             "initial_balance": 200.0,
         },
+        headers=auth_headers,
     )
     account_id = account_response.json()["id"]
 
@@ -63,6 +66,7 @@ def test_create_withdrawal_transaction(client: TestClient):
             "amount": 75.0,
             "description": "Test withdrawal",
         },
+        headers=auth_headers,
     )
     assert response.status_code == 201
     data = response.json()
@@ -70,11 +74,11 @@ def test_create_withdrawal_transaction(client: TestClient):
     assert data["amount"] == 75.0
 
     # Verify account balance decreased
-    account = client.get(f"/api/v1/accounts/{account_id}").json()
+    account = client.get(f"/api/v1/accounts/{account_id}", headers=auth_headers).json()
     assert account["balance"] == 125.0
 
 
-def test_insufficient_balance_withdrawal(client: TestClient):
+def test_insufficient_balance_withdrawal(client: TestClient, auth_headers: dict):
     """Test withdrawal with insufficient balance."""
     # Create an account with low balance
     account_response = client.post(
@@ -84,6 +88,7 @@ def test_insufficient_balance_withdrawal(client: TestClient):
             "account_type": "checking",
             "initial_balance": 10.0,
         },
+        headers=auth_headers,
     )
     account_id = account_response.json()["id"]
 
@@ -95,12 +100,13 @@ def test_insufficient_balance_withdrawal(client: TestClient):
             "transaction_type": "withdrawal",
             "amount": 100.0,
         },
+        headers=auth_headers,
     )
     assert response.status_code == 400
     assert "Insufficient balance" in response.json()["detail"]
 
 
-def test_list_transactions(client: TestClient):
+def test_list_transactions(client: TestClient, auth_headers: dict):
     """Test listing all transactions."""
     # Create account and transaction
     account_response = client.post(
@@ -110,6 +116,7 @@ def test_list_transactions(client: TestClient):
             "account_type": "checking",
             "initial_balance": 500.0,
         },
+        headers=auth_headers,
     )
     account_id = account_response.json()["id"]
 
@@ -120,17 +127,18 @@ def test_list_transactions(client: TestClient):
             "transaction_type": "deposit",
             "amount": 100.0,
         },
+        headers=auth_headers,
     )
 
     # List transactions
-    response = client.get("/api/v1/transactions")
+    response = client.get("/api/v1/transactions", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
     assert len(data) >= 1
 
 
-def test_get_transaction(client: TestClient):
+def test_get_transaction(client: TestClient, auth_headers: dict):
     """Test getting a specific transaction."""
     # Create account and transaction
     account_response = client.post(
@@ -140,6 +148,7 @@ def test_get_transaction(client: TestClient):
             "account_type": "savings",
             "initial_balance": 300.0,
         },
+        headers=auth_headers,
     )
     account_id = account_response.json()["id"]
 
@@ -150,11 +159,14 @@ def test_get_transaction(client: TestClient):
             "transaction_type": "deposit",
             "amount": 25.0,
         },
+        headers=auth_headers,
     )
     transaction_id = transaction_response.json()["id"]
 
     # Get the transaction
-    response = client.get(f"/api/v1/transactions/{transaction_id}")
+    response = client.get(
+        f"/api/v1/transactions/{transaction_id}", headers=auth_headers
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == transaction_id

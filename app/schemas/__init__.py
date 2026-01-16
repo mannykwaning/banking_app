@@ -12,6 +12,9 @@ from app.schemas.transaction import (
     TransactionBase,
     TransactionCreate,
     TransactionResponse,
+    InternalTransferCreate,
+    ExternalTransferCreate,
+    TransferResponse,
 )
 
 __all__ = [
@@ -22,4 +25,7 @@ __all__ = [
     "TransactionBase",
     "TransactionCreate",
     "TransactionResponse",
+    "InternalTransferCreate",
+    "ExternalTransferCreate",
+    "TransferResponse",
 ]

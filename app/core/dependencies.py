@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.services import AccountService, TransactionService
 from app.services.auth_service import AuthService
+from app.services.transfer_service import TransferService
 from app.repositories.user_repository import UserRepository
 from app.models.user import User
 
@@ -25,6 +26,11 @@ def get_account_service(db: Session = Depends(get_db)) -> AccountService:
 def get_transaction_service(db: Session = Depends(get_db)) -> TransactionService:
     """Dependency to get TransactionService instance."""
     return TransactionService(db)
+
+
+def get_transfer_service(db: Session = Depends(get_db)) -> TransferService:
+    """Dependency to get TransferService instance."""
+    return TransferService(db)
 
 
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:

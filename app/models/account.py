@@ -24,5 +24,8 @@ class Account(Base):
 
     # Relationship with transactions
     transactions = relationship(
-        "Transaction", back_populates="account", cascade="all, delete-orphan"
+        "Transaction",
+        back_populates="account",
+        cascade="all, delete-orphan",
+        foreign_keys="Transaction.account_id",
     )

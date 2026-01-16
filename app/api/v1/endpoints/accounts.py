@@ -4,11 +4,14 @@ Account endpoints for the API.
 
 from fastapi import APIRouter, Depends, status
 from typing import List
+import logging
 
 from app.schemas import AccountCreate, AccountResponse, AccountWithTransactions
 from app.services import AccountService
 from app.core.dependencies import get_account_service, get_current_active_user
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
@@ -25,11 +28,20 @@ def create_account(
     current_user: User = Depends(get_current_active_user),
 ):
     """Create a new bank account."""
-    return account_service.create_account(
+    logger.info(
+        "Create account endpoint called",
+        extra={"user_id": current_user.id, "account_type": account.account_type},
+    )
+    result = account_service.create_account(
         account_holder=account.account_holder,
         account_type=account.account_type,
         initial_balance=account.initial_balance,
     )
+    logger.info(
+        "Create account endpoint successful",
+        extra={"user_id": current_user.id, "account_id": result.id},
+    )
+    return result
 
 
 @router.get(
@@ -72,5 +84,13 @@ def delete_account(
     current_user: User = Depends(get_current_active_user),
 ):
     """Delete a bank account."""
+    logger.info(
+        "Delete account endpoint called",
+        extra={"user_id": current_user.id, "account_id": account_id},
+    )
     account_service.delete_account(account_id)
+    logger.info(
+        "Delete account endpoint successful",
+        extra={"user_id": current_user.id, "account_id": account_id},
+    )
     return None

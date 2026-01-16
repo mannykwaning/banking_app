@@ -9,9 +9,9 @@ Your task is to develop a REST service for a banking use case. To complete this 
 ### Core Components: You must develop the following components
 
 1. **Service Interface**
-   - [ ] Signing up
-   - [ ] Authentication
-   - [ ] Account Holders
+   - [X] Signing up
+   - [X] Authentication
+   - [X] Account Holders
    - [X] Accounts
    - [X] Transactions
    - [ ] Money Transfer
@@ -22,9 +22,9 @@ Your task is to develop a REST service for a banking use case. To complete this 
    - [X] Database implementation
 
 3. **Test Suite**
-   - [] Comprehensive test coverage for critical functionality
-   - [] Unit tests for business logic
-   - [] Integration tests for API endpoints
+   - [X] Comprehensive test coverage for critical functionality
+   - [X] Unit tests for business logic
+   - [X] Integration tests for API endpoints
 
 4. **Containerization**
    - [X] Dockerfile for the application

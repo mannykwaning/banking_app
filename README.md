@@ -12,8 +12,14 @@ A production-ready banking application backend API built with FastAPI and SQLite
 - 🌍 Environment variable configuration (.env support)
 - 📝 Interactive API documentation with Swagger UI (OAuth2 integrated)
 - ✅ Banking operations (accounts and transactions)
+- 💸 **Secure money transfers with ACID compliance**
+  - Internal transfers (between accounts in the system)
+  - External transfers (to other banks)
+  - Transaction limits and validation
+  - Automatic rollback on failure
 - 🧪 Comprehensive unit and integration tests
 - 🏗️ Clean architecture with repository and service layer patterns
+- 📊 Structured JSON logging with configurable log levels and output
 
 ## Prerequisites
 
@@ -32,7 +38,8 @@ banking_app_backend/
 │   │       └── endpoints/
 │   │           ├── accounts.py      # Account endpoints
 │   │           ├── auth.py          # Authentication endpoints
-│   │           └── transactions.py  # Transaction endpoints
+│   │           ├── transactions.py  # Transaction endpoints
+│   │           └── transfers.py     # Transfer endpoints (NEW)
 │   ├── core/
 │   │   ├── config.py               # Configuration and settings
 │   │   ├── database.py             # Database setup
@@ -52,7 +59,8 @@ banking_app_backend/
 │   └── services/
 │       ├── account_service.py      # Account business logic
 │       ├── auth_service.py         # Authentication service
-│       └── transaction_service.py  # Transaction business logic
+│       ├── transaction_service.py  # Transaction business logic
+│       └── transfer_service.py     # Transfer service with ACID compliance (NEW)
 ├── tests/
 │   ├── unit/                       # Unit tests
 │   │   ├── test_auth_service.py
@@ -76,6 +84,8 @@ banking_app_backend/
 
 ### Option 1: Using Docker (Recommended)
 
+#### Development Environment
+
 1. **Clone the repository**
 
    ```bash
@@ -83,23 +93,34 @@ banking_app_backend/
    cd banking_app
    ```
 
-2. **Create environment file**
+2. **Start development environment**
 
    ```bash
-   cp .env.example .env
-   # Edit .env if needed to customize configuration
+   # Uses .env.development configuration
+   docker-compose -f docker-compose.dev.yml up --build
    ```
 
-3. **Build and run with Docker Compose**
+   **Note:** If you've run the app before and are adding transfer features, the database will be **automatically recreated** with the new schema. No manual migration needed for SQLite!
+
+3. **Access the API**
+   - API: <http://localhost:8000>
+   - Swagger UI: <http://localhost:8000/docs>
+   - ReDoc: <http://localhost:8000/redoc>
+
+#### Production Environment
+
+1. **Configure production settings**
+
+   ```bash
+   # Update .env.production with your settings
+   # IMPORTANT: Set a strong SECRET_KEY
+   ```
+
+2. **Run production container**
 
    ```bash
    docker-compose up --build
    ```
-
-4. **Access the API**
-   - API: <http://localhost:8000>
-   - Swagger UI: <http://localhost:8000/docs>
-   - ReDoc: <http://localhost:8000/redoc>
 
 ### Option 2: Local Development
 
@@ -123,22 +144,65 @@ banking_app_backend/
    pip install -r requirements.txt
    ```
 
-4. **Create environment file**
+4. **Set environment for development**
 
    ```bash
-   cp .env.example .env
+   # Option 1: Export environment variable
+   export ENVIRONMENT=development
+   
+   # Option 2: Or create a .env file (will use .env.development by default)
+   cp .env.development .env
    ```
 
-5. **Run the application**
+5. **Prepare the database**
 
    ```bash
+   # For a fresh start (recommended for testing transfers):
+   rm -f data/banking.db  # Removes old database if exists
+   
+   # SQLAlchemy will automatically create the database with the correct schema
+   # on first run - no manual migration needed!
+   ```
+
+6. **Run the application**
+
+   ```bash
+   # With ENVIRONMENT variable
+   ENVIRONMENT=development uvicorn main:app --reload
+   
+   # Or if you copied .env file
    uvicorn main:app --reload
    ```
 
-6. **Access the API**
+7. **Access the API**
    - API: <http://localhost:8000>
    - Swagger UI: <http://localhost:8000/docs>
    - ReDoc: <http://localhost:8000/redoc>
+
+## Environment Configuration
+
+The application supports three environments: **development**, **test**, and **production**.
+
+### Quick Setup
+
+```bash
+# Development (verbose logging, debug enabled)
+ENVIRONMENT=development uvicorn main:app --reload
+
+# Test (minimal logging, in-memory DB)
+ENVIRONMENT=test pytest
+
+# Production (optimized, secure settings)
+ENVIRONMENT=production uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+Each environment has its own configuration file:
+
+- `.env.development` - Development settings
+- `.env.test` - Test settings  
+- `.env.production` - Production settings (update SECRET_KEY!)
+
+For detailed information, see [ENVIRONMENT_GUIDE.md](ENVIRONMENT_GUIDE.md).
 
 ## API Endpoints
 
@@ -166,6 +230,14 @@ banking_app_backend/
 - `POST /api/v1/transactions` - Create a new transaction (deposit/withdrawal)
 - `GET /api/v1/transactions` - List all transactions
 - `GET /api/v1/transactions/{transaction_id}` - Get transaction details
+
+### Transfers (Protected - Requires Authentication) 💸 NEW
+
+- `POST /api/v1/transfers/internal` - Create an internal transfer between accounts
+- `POST /api/v1/transfers/external` - Create an external transfer to another bank
+- `GET /api/v1/transfers/{reference_id}` - Get transfer details and status
+
+> **📖 For detailed transfer documentation, see [TRANSFER_README.md](TRANSFER_README.md)**
 
 ## Example Usage
 
@@ -256,6 +328,62 @@ curl "http://localhost:8000/api/v1/accounts/1" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
+### Money Transfers 💸
+
+#### Create Internal Transfer
+
+Transfer money between two accounts within the system:
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/transfers/internal" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "source_account_id": 1,
+    "destination_account_id": 2,
+    "amount": 100.00,
+    "description": "Payment for services"
+  }'
+```
+
+#### Create External Transfer
+
+Transfer money to an external bank account:
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/transfers/external" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "source_account_id": 1,
+    "external_account_number": "9876543210",
+    "external_bank_name": "Other Bank",
+    "external_routing_number": "123456789",
+    "amount": 500.00,
+    "description": "Payment to vendor"
+  }'
+```
+
+#### Check Transfer Status
+
+```bash
+curl "http://localhost:8000/api/v1/transfers/TXN-A1B2C3D4E5F6" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Transfer Features:**
+
+- ✅ ACID compliance with automatic rollback
+- ✅ Balance validation and transaction limits
+- ✅ Daily transfer limits enforcement
+- ✅ Internal transfers (instant completion)
+- ✅ External transfers (pending status)
+- ✅ Comprehensive audit logging
+
+> **📖 Complete transfer guide with examples:** [TRANSFER_GUIDE.md](TRANSFER_GUIDE.md)  
+> **🔧 Database migration guide:** [TRANSFER_MIGRATION.md](TRANSFER_MIGRATION.md)  
+> **📋 Quick reference:** [TRANSFER_QUICKREF.md](TRANSFER_QUICKREF.md)
+
 ### Using Swagger UI
 
 1. Navigate to `http://localhost:8000/docs`
@@ -284,18 +412,54 @@ API_V1_PREFIX=/api/v1
 
 # Security (IMPORTANT: Change in production!)
 SECRET_KEY=your-secret-key-here-change-in-production
+
+# Transfer Limits (Optional - defaults provided)
+MAX_TRANSFER_AMOUNT=100000.0
+DAILY_TRANSFER_LIMIT=500000.0
+MIN_TRANSFER_AMOUNT=0.01
+MAX_EXTERNAL_TRANSFER_AMOUNT=50000.0
+MIN_ACCOUNT_BALANCE=0.0
+
+# Logging Configuration
+LOG_LEVEL=INFO
+LOG_DIR=logs
 ```
 
 **Security Note:** The `SECRET_KEY` is used to sign JWT tokens. In production:
 
 - Use a strong, randomly generated key (at least 32 characters)
-- Never commit real secrets to version controlis automatically created in the `data/` directory when you first run the application.
+- Never commit real secrets to version control
+
+**Logging Configuration:**
+
+- `LOG_LEVEL`: Set to DEBUG, INFO, WARNING, ERROR, or CRITICAL (default: INFO)
+- `LOG_DIR`: Directory where log files will be stored (default: logs)
+- See [LOGGING_GUIDE.md](LOGGING_GUIDE.md) for detailed logging documentation
+
+### Database
+
+The database is automatically created in the `data/` directory when you first run the application.
+
+**For SQLite (Development):**
+
+- ✅ No migrations needed - SQLAlchemy creates all tables automatically
+- ✅ To use new features: just delete `data/banking.db` and restart
+- ✅ Fresh database created with correct schema every time
+
+**For Production Databases (PostgreSQL/MySQL):**
+
+- ⚠️ Migrations are required when schema changes
+- ⚠️ See [TRANSFER_MIGRATION.md](TRANSFER_MIGRATION.md) for migration scripts
+- ⚠️ Consider using Alembic for production migration management
 
 ### Models
 
 - **User**: User accounts with authentication credentials (email, username, hashed password)
 - **Account**: Bank accounts with account number, holder name, type, and balance
-- **Transaction**: Financial transactions (deposits/withdrawals) linked to accounts
+- **Transaction**: Financial transactions (deposits/withdrawals/transfers) linked to accounts
+  - Enhanced with transfer fields (destination account, external bank info)
+  - Status tracking (pending, completed, failed, reversed)
+  - Reference IDs for transfer linking
 
 ### Database Schema
 
@@ -323,6 +487,12 @@ pytest tests/integration/ -v
 # Authentication tests
 pytest tests/unit/test_auth_service.py tests/unit/test_user_repository.py -v
 pytest tests/integration/test_auth.py -v
+
+# Transfer tests (NEW)
+pytest tests/integration/test_transfers.py -v
+
+# Run transfer tests with detailed output
+pytest tests/integration/test_transfers.py -v -s
 
 # With coverage report
 pytest --cov=app --cov-report=html
@@ -409,10 +579,20 @@ This project follows clean architecture principles with clear separation of conc
 
 ## Additional Documentation
 
+### Core Documentation
+- **[ENVIRONMENT_GUIDE.md](ENVIRONMENT_GUIDE.md)** - Environment configuration for dev/test/prod
+- **[LOGGING_GUIDE.md](LOGGING_GUIDE.md)** - Structured logging configuration and usage
 - **[AUTH_GUIDE.md](AUTH_GUIDE.md)** - Comprehensive authentication guide with examples
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture and design decisions
 - **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Detailed project structure
 - **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Database migration guide
+
+### Transfer System Documentation 💸
+- **[TRANSFER_README.md](TRANSFER_README.md)** - Quick start guide for money transfers
+- **[TRANSFER_GUIDE.md](TRANSFER_GUIDE.md)** - Complete transfer documentation with examples
+- **[TRANSFER_MIGRATION.md](TRANSFER_MIGRATION.md)** - Database migration (for production PostgreSQL/MySQL only)
+- **[TRANSFER_IMPLEMENTATION.md](TRANSFER_IMPLEMENTATION.md)** - Implementation details and summary
+- **[TRANSFER_QUICKREF.md](TRANSFER_QUICKREF.md)** - Quick reference card
 
 ## Contributing
 
@@ -434,6 +614,12 @@ For issues and questions, please open an issue on the GitHub repository.
 
 ## Roadmap
 
+Recently Added:
+- [x] Logging and monitoring
+- [x] **Secure money transfers with ACID compliance**
+- [x] **Internal and external transfer support**
+- [x] **Transaction limits and validation**
+
 Future enhancements planned:
 - [ ] Password reset functionality
 - [ ] Email verification
@@ -442,6 +628,10 @@ Future enhancements planned:
 - [ ] Account lockout after failed login attempts
 - [ ] OAuth2 social login (Google, GitHub)
 - [ ] API rate limiting
-- [ ] Logging and monitoring
 - [ ] Database migrations with Alembic
 - [ ] CI/CD pipeline
+- [ ] Scheduled/recurring transfers
+- [ ] Real-time transfer notifications
+- [ ] Multi-currency support
+
+
