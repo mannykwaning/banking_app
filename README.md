@@ -12,7 +12,13 @@ A production-ready banking application backend API built with FastAPI and SQLite
 - 🌍 Environment variable configuration (.env support)
 - 📝 Interactive API documentation with Swagger UI (OAuth2 integrated)
 - ✅ Banking operations (accounts and transactions)
-- 💸 **Secure money transfers with ACID compliance**
+- � **Card Management with Encryption**
+  - Issue debit, credit, and prepaid cards
+  - Encrypted storage of PAN (Primary Account Number) and CVV
+  - Support for multiple cards per account (up to 5 active)
+  - Card status management (active, inactive, blocked, expired)
+  - Secure card detail retrieval with masking
+- �💸 **Secure money transfers with ACID compliance**
   - Internal transfers (between accounts in the system)
   - External transfers (to other banks)
   - Transaction limits and validation
@@ -38,29 +44,35 @@ banking_app_backend/
 │   │       └── endpoints/
 │   │           ├── accounts.py      # Account endpoints
 │   │           ├── auth.py          # Authentication endpoints
+│   │           ├── cards.py         # Card endpoints (NEW)
 │   │           ├── transactions.py  # Transaction endpoints
-│   │           └── transfers.py     # Transfer endpoints (NEW)
+│   │           └── transfers.py     # Transfer endpoints
 │   ├── core/
 │   │   ├── config.py               # Configuration and settings
 │   │   ├── database.py             # Database setup
-│   │   └── dependencies.py         # FastAPI dependencies
+│   │   ├── dependencies.py         # FastAPI dependencies
+│   │   └── encryption.py           # Encryption utilities (NEW)
 │   ├── models/
 │   │   ├── account.py              # Account database model
+│   │   ├── card.py                 # Card database model (NEW)
 │   │   ├── transaction.py          # Transaction database model
 │   │   └── user.py                 # User database model
 │   ├── repositories/
 │   │   ├── account_repository.py   # Account data access
+│   │   ├── card_repository.py      # Card data access (NEW)
 │   │   ├── transaction_repository.py
 │   │   └── user_repository.py      # User data access
 │   ├── schemas/
 │   │   ├── account.py              # Account request/response schemas
+│   │   ├── card.py                 # Card schemas (NEW)
 │   │   ├── transaction.py          # Transaction schemas
 │   │   └── user.py                 # User and auth schemas
 │   └── services/
 │       ├── account_service.py      # Account business logic
 │       ├── auth_service.py         # Authentication service
+│       ├── card_service.py         # Card service with encryption (NEW)
 │       ├── transaction_service.py  # Transaction business logic
-│       └── transfer_service.py     # Transfer service with ACID compliance (NEW)
+│       └── transfer_service.py     # Transfer service with ACID compliance
 ├── tests/
 │   ├── unit/                       # Unit tests
 │   │   ├── test_auth_service.py
@@ -70,12 +82,26 @@ banking_app_backend/
 │       ├── conftest.py
 │       ├── test_auth.py
 │       └── ...
+├── documentation/                  # All documentation files
+│   ├── ARCHITECTURE.md             # System architecture
+│   ├── AUTH_GUIDE.md               # Authentication guide
+│   ├── CARDS_GUIDE.md              # Card management guide
+│   ├── ENVIRONMENT_GUIDE.md        # Environment configuration
+│   ├── ENVIRONMENT_QUICKREF.md     # Environment quick reference
+│   ├── LOGGING_GUIDE.md            # Logging guide
+│   ├── MIGRATION_GUIDE.md          # Database migration guide
+│   ├── PROJECT_REQUIREMENTS.md     # Project requirements
+│   ├── PROJECT_STRUCTURE.md        # Detailed project structure
+│   ├── TRANSFER_GUIDE.md           # Transfer guide
+│   ├── TRANSFER_IMPLEMENTATION.md  # Transfer implementation
+│   ├── TRANSFER_MIGRATION.md       # Transfer migration guide
+│   ├── TRANSFER_QUICKREF.md        # Transfer quick reference
+│   └── TRANSFER_README.md          # Transfer quick start
 ├── data/                           # SQLite database files
 ├── main.py                         # Application entry point
 ├── requirements.txt                # Python dependencies
 ├── Dockerfile                      # Docker configuration
 ├── docker-compose.yml              # Docker Compose setup
-├── AUTH_GUIDE.md                   # Authentication usage guide
 ├── .env.example                    # Environment template
 └── README.md                       # This file
 ```
@@ -202,7 +228,7 @@ Each environment has its own configuration file:
 - `.env.test` - Test settings  
 - `.env.production` - Production settings (update SECRET_KEY!)
 
-For detailed information, see [ENVIRONMENT_GUIDE.md](ENVIRONMENT_GUIDE.md).
+For detailed information, see [ENVIRONMENT_GUIDE.md](documentation/ENVIRONMENT_GUIDE.md).
 
 ## API Endpoints
 
@@ -231,13 +257,27 @@ For detailed information, see [ENVIRONMENT_GUIDE.md](ENVIRONMENT_GUIDE.md).
 - `GET /api/v1/transactions` - List all transactions
 - `GET /api/v1/transactions/{transaction_id}` - Get transaction details
 
-### Transfers (Protected - Requires Authentication) 💸 NEW
+### Transfers (Protected - Requires Authentication) 💸
 
 - `POST /api/v1/transfers/internal` - Create an internal transfer between accounts
 - `POST /api/v1/transfers/external` - Create an external transfer to another bank
 - `GET /api/v1/transfers/{reference_id}` - Get transfer details and status
 
-> **📖 For detailed transfer documentation, see [TRANSFER_README.md](TRANSFER_README.md)**
+> **📖 For detailed transfer documentation, see [TRANSFER_README.md](documentation/TRANSFER_README.md)**
+
+### Cards (Protected - Requires Authentication) 💳 NEW
+
+- `POST /api/v1/cards` - Issue a new card for an account
+- `GET /api/v1/cards` - List all cards
+- `GET /api/v1/cards/{card_id}` - Get card details (without sensitive data)
+- `GET /api/v1/cards/{card_id}/details` - Get full card details including PAN and CVV
+- `GET /api/v1/cards/{card_id}/masked` - Get masked card number
+- `GET /api/v1/cards/account/{account_id}` - Get all cards for an account
+- `PATCH /api/v1/cards/{card_id}/status` - Update card status
+- `POST /api/v1/cards/{card_id}/block` - Block a card
+- `POST /api/v1/cards/{card_id}/activate` - Activate a card
+
+> **📖 For detailed card documentation, see [CARDS_GUIDE.md](documentation/CARDS_GUIDE.md)**
 
 ## Example Usage
 
@@ -298,6 +338,79 @@ curl -X POST "http://localhost:8000/api/v1/accounts" \
 ```bash
 curl -X POST "http://localhost:8000/api/v1/transactions" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "account_id": 1,
+    "transaction_type": "deposit",
+    "amount": 500.0,
+    "description": "Initial deposit"
+  }'
+```
+
+#### Issue a Card 💳
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/cards" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "account_id": 1,
+    "cardholder_name": "JOHN DOE",
+    "card_type": "debit"
+  }'
+```
+
+Response:
+
+```json
+{
+  "id": 1,
+  "account_id": 1,
+  "card_number_last4": "1234",
+  "cardholder_name": "JOHN DOE",
+  "card_type": "debit",
+  "status": "active",
+  "expiry_month": 12,
+  "expiry_year": 2029,
+  "issued_at": "2026-01-15T10:30:00",
+  "created_at": "2026-01-15T10:30:00",
+  "updated_at": "2026-01-15T10:30:00"
+}
+```
+
+#### Get Card Details (Sensitive Data)
+
+```bash
+curl -X GET "http://localhost:8000/api/v1/cards/1/details" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+Response includes decrypted PAN and CVV:
+
+```json
+{
+  "id": 1,
+  "account_id": 1,
+  "card_number_last4": "1234",
+  "cardholder_name": "JOHN DOE",
+  "card_type": "debit",
+  "status": "active",
+  "expiry_month": 12,
+  "expiry_year": 2029,
+  "card_number": "4000000000001234",
+  "cvv": "123",
+  "issued_at": "2026-01-15T10:30:00",
+  "created_at": "2026-01-15T10:30:00",
+  "updated_at": "2026-01-15T10:30:00"
+}
+```
+
+#### Block a Card
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/cards/1/block" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+``` \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -d '{
     "account_id": 1,
@@ -380,9 +493,9 @@ curl "http://localhost:8000/api/v1/transfers/TXN-A1B2C3D4E5F6" \
 - ✅ External transfers (pending status)
 - ✅ Comprehensive audit logging
 
-> **📖 Complete transfer guide with examples:** [TRANSFER_GUIDE.md](TRANSFER_GUIDE.md)  
-> **🔧 Database migration guide:** [TRANSFER_MIGRATION.md](TRANSFER_MIGRATION.md)  
-> **📋 Quick reference:** [TRANSFER_QUICKREF.md](TRANSFER_QUICKREF.md)
+> **📖 Complete transfer guide with examples:** [TRANSFER_GUIDE.md](documentation/TRANSFER_GUIDE.md)  
+> **🔧 Database migration guide:** [TRANSFER_MIGRATION.md](documentation/TRANSFER_MIGRATION.md)  
+> **📋 Quick reference:** [TRANSFER_QUICKREF.md](documentation/TRANSFER_QUICKREF.md)
 
 ### Using Swagger UI
 
@@ -392,7 +505,7 @@ curl "http://localhost:8000/api/v1/transfers/TXN-A1B2C3D4E5F6" \
 4. Enter the token in the authorization dialog
 5. All protected endpoints will now work with your credentials
 
-For detailed authentication examples and troubleshooting, see [AUTH_GUIDE.md](AUTH_GUIDE.md).
+For detailed authentication examples and troubleshooting, see [AUTH_GUIDE.md](documentation/AUTH_GUIDE.md).
 
 ## Environment Variables
 
@@ -434,7 +547,7 @@ LOG_DIR=logs
 
 - `LOG_LEVEL`: Set to DEBUG, INFO, WARNING, ERROR, or CRITICAL (default: INFO)
 - `LOG_DIR`: Directory where log files will be stored (default: logs)
-- See [LOGGING_GUIDE.md](LOGGING_GUIDE.md) for detailed logging documentation
+- See [LOGGING_GUIDE.md](documentation/LOGGING_GUIDE.md) for detailed logging documentation
 
 ### Database
 
@@ -449,7 +562,7 @@ The database is automatically created in the `data/` directory when you first ru
 **For Production Databases (PostgreSQL/MySQL):**
 
 - ⚠️ Migrations are required when schema changes
-- ⚠️ See [TRANSFER_MIGRATION.md](TRANSFER_MIGRATION.md) for migration scripts
+- ⚠️ See [TRANSFER_MIGRATION.md](documentation/TRANSFER_MIGRATION.md) for migration scripts
 - ⚠️ Consider using Alembic for production migration management
 
 ### Models
@@ -579,20 +692,25 @@ This project follows clean architecture principles with clear separation of conc
 
 ## Additional Documentation
 
+All detailed documentation is located in the [`documentation/`](documentation/) folder:
+
 ### Core Documentation
-- **[ENVIRONMENT_GUIDE.md](ENVIRONMENT_GUIDE.md)** - Environment configuration for dev/test/prod
-- **[LOGGING_GUIDE.md](LOGGING_GUIDE.md)** - Structured logging configuration and usage
-- **[AUTH_GUIDE.md](AUTH_GUIDE.md)** - Comprehensive authentication guide with examples
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture and design decisions
-- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Detailed project structure
-- **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Database migration guide
+- **[ENVIRONMENT_GUIDE.md](documentation/ENVIRONMENT_GUIDE.md)** - Environment configuration for dev/test/prod
+- **[LOGGING_GUIDE.md](documentation/LOGGING_GUIDE.md)** - Structured logging configuration and usage
+- **[AUTH_GUIDE.md](documentation/AUTH_GUIDE.md)** - Comprehensive authentication guide with examples
+- **[ARCHITECTURE.md](documentation/ARCHITECTURE.md)** - System architecture and design decisions
+- **[PROJECT_STRUCTURE.md](documentation/PROJECT_STRUCTURE.md)** - Detailed project structure
+- **[MIGRATION_GUIDE.md](documentation/MIGRATION_GUIDE.md)** - Database migration guide
 
 ### Transfer System Documentation 💸
-- **[TRANSFER_README.md](TRANSFER_README.md)** - Quick start guide for money transfers
-- **[TRANSFER_GUIDE.md](TRANSFER_GUIDE.md)** - Complete transfer documentation with examples
-- **[TRANSFER_MIGRATION.md](TRANSFER_MIGRATION.md)** - Database migration (for production PostgreSQL/MySQL only)
-- **[TRANSFER_IMPLEMENTATION.md](TRANSFER_IMPLEMENTATION.md)** - Implementation details and summary
-- **[TRANSFER_QUICKREF.md](TRANSFER_QUICKREF.md)** - Quick reference card
+- **[TRANSFER_README.md](documentation/TRANSFER_README.md)** - Quick start guide for money transfers
+- **[TRANSFER_GUIDE.md](documentation/TRANSFER_GUIDE.md)** - Complete transfer documentation with examples
+- **[TRANSFER_MIGRATION.md](documentation/TRANSFER_MIGRATION.md)** - Database migration (for production PostgreSQL/MySQL only)
+- **[TRANSFER_IMPLEMENTATION.md](documentation/TRANSFER_IMPLEMENTATION.md)** - Implementation details and summary
+- **[TRANSFER_QUICKREF.md](documentation/TRANSFER_QUICKREF.md)** - Quick reference card
+
+### Card System Documentation 💳
+- **[CARDS_GUIDE.md](documentation/CARDS_GUIDE.md)** - Complete card management guide with API reference
 
 ## Contributing
 

@@ -14,7 +14,7 @@ Your task is to develop a REST service for a banking use case. To complete this 
    - [X] Account Holders
    - [X] Accounts
    - [X] Transactions
-   - [ ] Money Transfer
+   - [X] Money Transfer
    - [ ] Cards
    - [ ] Statements
 
@@ -33,7 +33,7 @@ Your task is to develop a REST service for a banking use case. To complete this 
    - [ ] Multi-stage builds (bonus)
 
 5. **Logging & Monitoring**
-   - [ ] Structured logging implementation
+   - [X] Structured logging implementation
    - [ ] Log levels and formatting
    - [ ] Error tracking and reporting
 

@@ -16,6 +16,15 @@ from app.schemas.transaction import (
     ExternalTransferCreate,
     TransferResponse,
 )
+from app.schemas.card import (
+    CardIssueRequest,
+    CardResponse,
+    CardDetailsResponse,
+    CardStatusUpdate,
+    MaskedCardNumber,
+    CardTypeEnum,
+    CardStatusEnum,
+)
 
 __all__ = [
     "AccountBase",
@@ -28,4 +37,11 @@ __all__ = [
     "InternalTransferCreate",
     "ExternalTransferCreate",
     "TransferResponse",
+    "CardIssueRequest",
+    "CardResponse",
+    "CardDetailsResponse",
+    "CardStatusUpdate",
+    "MaskedCardNumber",
+    "CardTypeEnum",
+    "CardStatusEnum",
 ]

@@ -11,7 +11,7 @@ from app.core.database import Base, get_db
 from main import app
 
 # Import all models to ensure they're registered with Base
-from app.models import Account, Transaction, User  # noqa: F401
+from app.models import Account, Transaction, User, Card  # noqa: F401
 
 # Use in-memory SQLite database for tests
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"

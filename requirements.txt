@@ -6,12 +6,13 @@ pydantic==2.10.3
 pydantic-settings==2.6.1
 python-json-logger==2.0.7
 
-# Authentication
+# Authentication & Encryption
 passlib[bcrypt]==1.7.4
 bcrypt==4.1.3
 python-jose[cryptography]==3.3.0
 python-multipart==0.0.20
 email-validator==2.2.0
+cryptography==42.0.5
 
 # Testing
 pytest==9.0.2

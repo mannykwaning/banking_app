@@ -37,7 +37,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def create_tables():
     """Create all tables in the database."""
     # Import all models to ensure they're registered with Base
-    from app.models import Account, Transaction, User  # noqa: F401
+    from app.models import Account, Transaction, User, Card  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 
