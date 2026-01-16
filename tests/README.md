@@ -24,6 +24,7 @@ tests/
 ## Test Coverage
 
 ### Unit Tests (36 tests)
+
 Tests individual components in isolation using mocks:
 
 - **Repository Layer** (13 tests)
@@ -39,6 +40,7 @@ Tests individual components in isolation using mocks:
   - Transaction processing
 
 ### Integration Tests (10 tests)
+
 Tests complete API endpoints with real database:
 
 - **Account Endpoints** (5 tests)
@@ -53,31 +55,37 @@ Tests complete API endpoints with real database:
 ## Running Tests
 
 ### Run All Tests
+
 ```bash
 pytest tests/ -v
 ```
 
 ### Run Unit Tests Only
+
 ```bash
 pytest tests/unit/ -v
 ```
 
 ### Run Integration Tests Only
+
 ```bash
 pytest tests/integration/ -v
 ```
 
 ### Run Specific Test File
+
 ```bash
 pytest tests/unit/test_account_service.py -v
 ```
 
 ### Run Specific Test
+
 ```bash
 pytest tests/unit/test_account_service.py::TestAccountService::test_create_account_success -v
 ```
 
 ### Run with Coverage
+
 ```bash
 # Generate coverage report
 pytest tests/ --cov=app --cov-report=html
@@ -87,19 +95,22 @@ open htmlcov/index.html
 ```
 
 ### Run with Coverage Terminal Report
+
 ```bash
 pytest tests/ --cov=app --cov-report=term-missing
 ```
 
 ## Test Results
 
-**Total: 46 tests**
+### Total: 46 tests
+
 - ✅ Unit Tests: 36 passed
 - ✅ Integration Tests: 10 passed
 
 ## Writing New Tests
 
 ### Unit Test Example
+
 ```python
 from unittest.mock import Mock
 import pytest
@@ -119,6 +130,7 @@ class TestMyService:
 ```
 
 ### Integration Test Example
+
 ```python
 def test_my_endpoint(client):
     # Act
@@ -133,6 +145,7 @@ def test_my_endpoint(client):
 ## Best Practices
 
 ### Unit Tests
+
 - ✅ Use mocks for dependencies
 - ✅ Test one method at a time
 - ✅ Cover success cases and error scenarios
@@ -140,6 +153,7 @@ def test_my_endpoint(client):
 - ✅ Independent and isolated
 
 ### Integration Tests
+
 - ✅ Test complete user workflows
 - ✅ Use real database (test DB)
 - ✅ Validate API contracts
@@ -161,6 +175,7 @@ Add to your CI/CD pipeline:
 ## Dependencies
 
 Test dependencies are listed in `requirements.txt`:
+
 - `pytest` - Testing framework
 - `pytest-cov` - Coverage plugin
 - `httpx` - HTTP client for TestClient
@@ -168,27 +183,33 @@ Test dependencies are listed in `requirements.txt`:
 ## Troubleshooting
 
 ### Import Errors
+
 Make sure you're running from the project root:
+
 ```bash
 cd /path/to/banking_app_backend
 pytest tests/
 ```
 
 ### Database Issues
+
 Integration tests create a test database that's cleaned up after each test.
 Check `tests/integration/conftest.py` for configuration.
 
 ### Mock Issues
+
 Ensure mocks are properly configured in `tests/unit/conftest.py`.
 
 ## Test Philosophy
 
 **Unit Tests**: Focus on testing individual components in isolation
+
 - Fast feedback
 - Easy to debug
 - No external dependencies
 
 **Integration Tests**: Focus on testing the system as a whole
+
 - Real-world scenarios
 - API contract validation
 - End-to-end workflows

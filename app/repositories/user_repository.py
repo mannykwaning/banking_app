@@ -16,7 +16,9 @@ class UserRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, user_data: UserCreate, hashed_password: str) -> User:
+    def create(
+        self, user_data: UserCreate, hashed_password: str, is_superuser: bool = False
+    ) -> User:
         """Create a new user with hashed password."""
         user = User(
             id=str(uuid.uuid4()),
@@ -25,7 +27,7 @@ class UserRepository:
             full_name=user_data.full_name,
             hashed_password=hashed_password,
             is_active=True,
-            is_superuser=False,
+            is_superuser=is_superuser,
         )
         self.db.add(user)
         self.db.commit()

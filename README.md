@@ -26,6 +26,12 @@ A production-ready banking application backend API built with FastAPI and SQLite
 - 🧪 Comprehensive unit and integration tests
 - 🏗️ Clean architecture with repository and service layer patterns
 - 📊 Structured JSON logging with configurable log levels and output
+- 🚨 **Comprehensive error tracking and reporting**
+  - Automatic error categorization (validation, auth, server, database)
+  - PII sanitization in error logs
+  - Error storage in database for analysis
+  - Admin API for error monitoring and reporting
+  - Proper HTTP status codes for all error types
 
 ## Prerequisites
 
@@ -51,26 +57,26 @@ banking_app_backend/
 │   │   ├── config.py               # Configuration and settings
 │   │   ├── database.py             # Database setup
 │   │   ├── dependencies.py         # FastAPI dependencies
-│   │   └── encryption.py           # Encryption utilities (NEW)
+│   │   └── encryption.py           # Encryption utilities
 │   ├── models/
 │   │   ├── account.py              # Account database model
-│   │   ├── card.py                 # Card database model (NEW)
+│   │   ├── card.py                 # Card database model
 │   │   ├── transaction.py          # Transaction database model
 │   │   └── user.py                 # User database model
 │   ├── repositories/
 │   │   ├── account_repository.py   # Account data access
-│   │   ├── card_repository.py      # Card data access (NEW)
+│   │   ├── card_repository.py      # Card data access
 │   │   ├── transaction_repository.py
 │   │   └── user_repository.py      # User data access
 │   ├── schemas/
 │   │   ├── account.py              # Account request/response schemas
-│   │   ├── card.py                 # Card schemas (NEW)
+│   │   ├── card.py                 # Card schemas
 │   │   ├── transaction.py          # Transaction schemas
 │   │   └── user.py                 # User and auth schemas
 │   └── services/
 │       ├── account_service.py      # Account business logic
 │       ├── auth_service.py         # Authentication service
-│       ├── card_service.py         # Card service with encryption (NEW)
+│       ├── card_service.py         # Card service with encryption
 │       ├── transaction_service.py  # Transaction business logic
 │       └── transfer_service.py     # Transfer service with ACID compliance
 ├── tests/
@@ -265,7 +271,7 @@ For detailed information, see [ENVIRONMENT_GUIDE.md](documentation/ENVIRONMENT_G
 
 > **📖 For detailed transfer documentation, see [TRANSFER_README.md](documentation/TRANSFER_README.md)**
 
-### Cards (Protected - Requires Authentication) 💳 NEW
+### Cards (Protected - Requires Authentication) 💳
 
 - `POST /api/v1/cards` - Issue a new card for an account
 - `GET /api/v1/cards` - List all cards
@@ -278,6 +284,17 @@ For detailed information, see [ENVIRONMENT_GUIDE.md](documentation/ENVIRONMENT_G
 - `POST /api/v1/cards/{card_id}/activate` - Activate a card
 
 > **📖 For detailed card documentation, see [CARDS_GUIDE.md](documentation/CARDS_GUIDE.md)**
+
+### Admin - Error Tracking (Protected - Requires Admin/Superuser) 🚨
+
+- `GET /api/v1/admin/errors` - List error logs with filtering and pagination
+- `GET /api/v1/admin/errors/summary` - Get error statistics and summaries
+- `GET /api/v1/admin/errors/recent` - Get most recent errors
+- `GET /api/v1/admin/errors/{error_id}` - Get detailed error information with stack trace
+
+**Authentication:** Requires JWT token **AND** superuser privileges (`is_superuser=True`)
+
+> **📖 For detailed error tracking documentation, see [ERROR_HANDLING.md](documentation/ERROR_HANDLING.md)**
 
 ## Example Usage
 
@@ -493,6 +510,43 @@ curl "http://localhost:8000/api/v1/transfers/TXN-A1B2C3D4E5F6" \
 - ✅ External transfers (pending status)
 - ✅ Comprehensive audit logging
 
+### Error Tracking & Monitoring 🚨
+
+Admin users can monitor and analyze application errors through the error tracking API.
+
+#### Get Error Summary (Admin Only)
+
+```bash
+# First, login as admin user
+curl -X POST "http://localhost:8000/api/v1/auth/login/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "adminpass"
+  }'
+
+# Use the admin token to get error summary
+curl "http://localhost:8000/api/v1/admin/errors/summary?hours=24" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+```
+
+#### List Recent Errors (Admin Only)
+
+```bash
+curl "http://localhost:8000/api/v1/admin/errors?category=validation&limit=50" \
+  -H "Authorization: Bearer ADMIN_ACCESS_TOKEN"
+```
+
+**Error Tracking Features:**
+
+- ✅ Automatic error categorization (validation, auth, server, database)
+- ✅ PII sanitization in all error logs
+- ✅ Error storage in database for analysis
+- ✅ Filtering by category, endpoint, status code, date range
+- ✅ Detailed stack traces with context
+- ✅ Admin-only access with superuser requirement
+
+> **📖 For complete error API documentation and examples, see [ERROR_HANDLING.md](documentation/ERROR_HANDLING.md)**
 > **📖 Complete transfer guide with examples:** [TRANSFER_GUIDE.md](documentation/TRANSFER_GUIDE.md)  
 > **🔧 Database migration guide:** [TRANSFER_MIGRATION.md](documentation/TRANSFER_MIGRATION.md)  
 > **📋 Quick reference:** [TRANSFER_QUICKREF.md](documentation/TRANSFER_QUICKREF.md)
@@ -698,6 +752,8 @@ All detailed documentation is located in the [`documentation/`](documentation/) 
 - **[ENVIRONMENT_GUIDE.md](documentation/ENVIRONMENT_GUIDE.md)** - Environment configuration for dev/test/prod
 - **[LOGGING_GUIDE.md](documentation/LOGGING_GUIDE.md)** - Structured logging configuration and usage
 - **[AUTH_GUIDE.md](documentation/AUTH_GUIDE.md)** - Comprehensive authentication guide with examples
+- **[ADMIN_SETUP.md](documentation/ADMIN_SETUP.md)** - Admin user creation and superuser privileges
+- **[ERROR_HANDLING.md](documentation/ERROR_HANDLING.md)** - Error tracking, reporting, and PII sanitization
 - **[ARCHITECTURE.md](documentation/ARCHITECTURE.md)** - System architecture and design decisions
 - **[PROJECT_STRUCTURE.md](documentation/PROJECT_STRUCTURE.md)** - Detailed project structure
 - **[MIGRATION_GUIDE.md](documentation/MIGRATION_GUIDE.md)** - Database migration guide
@@ -737,6 +793,8 @@ Recently Added:
 - [x] **Secure money transfers with ACID compliance**
 - [x] **Internal and external transfer support**
 - [x] **Transaction limits and validation**
+- [x] **Comprehensive error tracking and reporting system**
+- [x] **Admin API for error monitoring with PII sanitization**
 
 Future enhancements planned:
 - [ ] Password reset functionality

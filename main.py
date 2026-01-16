@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.core.database import create_tables
 from app.core.logging import setup_logging, get_logger
 from app.api.v1 import router as api_v1_router
+from app.core.error_handlers import register_exception_handlers
 
 
 # Initialize logging
@@ -20,6 +21,9 @@ setup_logging(
     log_level=settings.log_level,
     log_dir=settings.log_dir,
     app_name=settings.app_name.lower().replace(" ", "_"),
+    log_format=settings.log_format,
+    date_format=settings.log_date_format,
+    message_format=settings.log_message_format,
 )
 
 logger = get_logger(__name__)
@@ -54,6 +58,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+# Register error handlers
+register_exception_handlers(app)
 
 # Configure CORS
 app.add_middleware(

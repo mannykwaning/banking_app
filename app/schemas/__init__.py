@@ -25,6 +25,12 @@ from app.schemas.card import (
     CardTypeEnum,
     CardStatusEnum,
 )
+from app.schemas.error_log import (
+    ErrorLogResponse,
+    ErrorLogDetailResponse,
+    ErrorLogSummary,
+    ErrorLogsListResponse,
+)
 
 __all__ = [
     "AccountBase",
@@ -44,4 +50,8 @@ __all__ = [
     "MaskedCardNumber",
     "CardTypeEnum",
     "CardStatusEnum",
+    "ErrorLogResponse",
+    "ErrorLogDetailResponse",
+    "ErrorLogSummary",
+    "ErrorLogsListResponse",
 ]

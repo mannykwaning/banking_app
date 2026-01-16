@@ -15,7 +15,7 @@ Your task is to develop a REST service for a banking use case. To complete this 
    - [X] Accounts
    - [X] Transactions
    - [X] Money Transfer
-   - [ ] Cards
+   - [X] Cards
    - [ ] Statements
 
 2. **Database** (using SQLite)
@@ -34,8 +34,8 @@ Your task is to develop a REST service for a banking use case. To complete this 
 
 5. **Logging & Monitoring**
    - [X] Structured logging implementation
-   - [ ] Log levels and formatting
-   - [ ] Error tracking and reporting
+   - [X] Log levels and formatting
+   - [X] Error tracking and reporting
 
 6. **Health Checks**
    - [X] Health check endpoint
@@ -72,8 +72,8 @@ Your task is to develop a REST service for a banking use case. To complete this 
    - [ ] Areas where manual intervention was necessary
 
 4. **Bonus Points**
-   - [ ] Test client application demonstrating the flow
-   - [ ] Simple frontend interface
+   - [X] Test client application demonstrating the flow
+   - [X] Simple frontend interface: swagger-ui? at: `http://localhost:8000/docs`
 
 ### Ways of Working
 
@@ -82,10 +82,10 @@ Your task is to develop a REST service for a banking use case. To complete this 
 
 ### Additional Notes
 
-- [ ] You MUST use any AI tools available to you
-- [ ] External libraries and frameworks are allowed
-- [ ] Focus on demonstrating effective AI-driven development
-- [ ] Partial implementations are acceptable if well-documented
-- [ ] Security is paramount - ensure no secrets are committed
-- [ ] Test suite is a hard requirement - demonstrate testing best practices
-- [ ] Production readiness is key - show understanding of operational concerns
+- [X] You MUST use any AI tools available to you
+- [X] External libraries and frameworks are allowed
+- [X] Focus on demonstrating effective AI-driven development
+- [X] Partial implementations are acceptable if well-documented
+- [X] Security is paramount - ensure no secrets are committed
+- [X] Test suite is a hard requirement - demonstrate testing best practices
+- [X] Production readiness is key - show understanding of operational concerns

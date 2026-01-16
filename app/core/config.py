@@ -61,6 +61,16 @@ class Settings(BaseSettings):
     # Logging Configuration
     log_level: str = "INFO"
     log_dir: str = "logs"
+    log_format: str = "json"  # "json" or "text"
+    log_date_format: str = "%Y-%m-%d %H:%M:%S"  # Date format for logs
+    log_message_format: str = (
+        "%(timestamp)s %(level)s %(name)s %(message)s"  # Format for structured logs
+    )
+
+    # Admin Setup (for creating initial superuser)
+    admin_setup_key: str = (
+        "change-me-in-production-admin-setup-key"  # Secret key for creating admin users
+    )
 
     # CORS Configuration
     cors_origins: List[str] = ["http://localhost:3000", "http://localhost:8080"]

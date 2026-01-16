@@ -95,11 +95,15 @@ class AuthService:
             logger.warning("Token validation failed", extra={"error": str(e)})
             return None
 
-    def register_user(self, user_data: UserCreate) -> User:
-        """Register a new user."""
+    def register_user(self, user_data: UserCreate, is_superuser: bool = False) -> User:
+        """Register a new user with optional superuser privileges."""
         logger.info(
             "User registration attempt",
-            extra={"username": user_data.username, "email": user_data.email},
+            extra={
+                "username": user_data.username,
+                "email": user_data.email,
+                "is_superuser": is_superuser,
+            },
         )
 
         # Check if user already exists
@@ -118,11 +122,18 @@ class AuthService:
 
         # Hash password and create user
         hashed_password = self.get_password_hash(user_data.password)
-        user = self.user_repository.create(user_data, hashed_password)
+        user = self.user_repository.create(
+            user_data, hashed_password, is_superuser=is_superuser
+        )
 
         logger.info(
             "User registered successfully",
-            extra={"username": user.username, "user_id": user.id, "email": user.email},
+            extra={
+                "username": user.username,
+                "user_id": user.id,
+                "email": user.email,
+                "is_superuser": user.is_superuser,
+            },
         )
         return user
 
