@@ -2,11 +2,17 @@
 Account endpoints for the API.
 """
 
-from fastapi import APIRouter, Depends, status
-from typing import List
+from fastapi import APIRouter, Depends, status, Query
+from typing import List, Optional
+from datetime import datetime
 import logging
 
-from app.schemas import AccountCreate, AccountResponse, AccountWithTransactions
+from app.schemas import (
+    AccountCreate,
+    AccountResponse,
+    AccountWithTransactions,
+    AccountStatementResponse,
+)
 from app.services import AccountService
 from app.core.dependencies import get_account_service, get_current_active_user
 from app.models.user import User
@@ -94,3 +100,52 @@ def delete_account(
         extra={"user_id": current_user.id, "account_id": account_id},
     )
     return None
+
+
+@router.get(
+    "/{account_id}/statement",
+    response_model=AccountStatementResponse,
+    summary="Generate account statement",
+)
+def generate_account_statement(
+    account_id: int,
+    start_date: Optional[datetime] = Query(
+        None,
+        description="Start date for statement period (ISO format). Defaults to 30 days ago.",
+    ),
+    end_date: Optional[datetime] = Query(
+        None,
+        description="End date for statement period (ISO format). Defaults to now.",
+    ),
+    account_service: AccountService = Depends(get_account_service),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Generate an account statement with balance and transaction activity.
+
+    Returns account details, current balance, and transaction summary
+    for the specified period (defaults to last 30 days).
+    """
+    logger.info(
+        "Generate account statement endpoint called",
+        extra={
+            "user_id": current_user.id,
+            "account_id": account_id,
+            "start_date": start_date,
+            "end_date": end_date,
+        },
+    )
+    statement = account_service.generate_account_statement(
+        account_id=account_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    logger.info(
+        "Generate account statement endpoint successful",
+        extra={
+            "user_id": current_user.id,
+            "account_id": account_id,
+            "transaction_count": statement["transaction_count"],
+        },
+    )
+    return statement

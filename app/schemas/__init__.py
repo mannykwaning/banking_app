@@ -7,6 +7,7 @@ from app.schemas.account import (
     AccountCreate,
     AccountResponse,
     AccountWithTransactions,
+    AccountStatementResponse,
 )
 from app.schemas.transaction import (
     TransactionBase,
@@ -37,6 +38,7 @@ __all__ = [
     "AccountCreate",
     "AccountResponse",
     "AccountWithTransactions",
+    "AccountStatementResponse",
     "TransactionBase",
     "TransactionCreate",
     "TransactionResponse",

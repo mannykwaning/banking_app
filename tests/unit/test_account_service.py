@@ -135,3 +135,141 @@ class TestAccountService:
             service.delete_account(999)
 
         assert exc_info.value.status_code == 404
+
+    def test_generate_account_statement_success(self, mock_db_session):
+        """Test successful account statement generation."""
+        from datetime import datetime, timedelta
+        from app.models import Transaction
+
+        # Create mock account with transactions
+        mock_account = Mock(spec=Account)
+        mock_account.id = 1
+        mock_account.account_number = "1234567890"
+        mock_account.account_holder = "John Doe"
+        mock_account.account_type = "checking"
+        mock_account.balance = 1500.0
+
+        # Create mock transactions
+        now = datetime.utcnow()
+        mock_transaction1 = Mock(spec=Transaction)
+        mock_transaction1.transaction_type = "deposit"
+        mock_transaction1.amount = 500.0
+        mock_transaction1.created_at = now - timedelta(days=5)
+
+        mock_transaction2 = Mock(spec=Transaction)
+        mock_transaction2.transaction_type = "withdrawal"
+        mock_transaction2.amount = 100.0
+        mock_transaction2.created_at = now - timedelta(days=3)
+
+        mock_transaction3 = Mock(spec=Transaction)
+        mock_transaction3.transaction_type = "transfer_in"
+        mock_transaction3.amount = 200.0
+        mock_transaction3.created_at = now - timedelta(days=2)
+
+        mock_account.transactions = [
+            mock_transaction1,
+            mock_transaction2,
+            mock_transaction3,
+        ]
+
+        service = AccountService(mock_db_session)
+        service.repository.get_by_id = Mock(return_value=mock_account)
+
+        # Execute
+        statement = service.generate_account_statement(account_id=1)
+
+        # Assert
+        assert statement["account_id"] == 1
+        assert statement["account_number"] == "1234567890"
+        assert statement["account_holder"] == "John Doe"
+        assert statement["current_balance"] == 1500.0
+        assert statement["total_deposits"] == 500.0
+        assert statement["total_withdrawals"] == 100.0
+        assert statement["total_transfers_in"] == 200.0
+        assert statement["total_transfers_out"] == 0.0
+        assert statement["transaction_count"] == 3
+        assert len(statement["transactions"]) == 3
+        assert "statement_period" in statement
+        assert "start_date" in statement["statement_period"]
+        assert "end_date" in statement["statement_period"]
+
+    def test_generate_account_statement_with_date_range(self, mock_db_session):
+        """Test account statement generation with custom date range."""
+        from datetime import datetime, timedelta
+        from app.models import Transaction
+
+        # Create mock account with transactions
+        mock_account = Mock(spec=Account)
+        mock_account.id = 1
+        mock_account.account_number = "1234567890"
+        mock_account.account_holder = "Jane Doe"
+        mock_account.account_type = "savings"
+        mock_account.balance = 2000.0
+
+        now = datetime.utcnow()
+
+        # Transaction within range
+        mock_transaction1 = Mock(spec=Transaction)
+        mock_transaction1.transaction_type = "deposit"
+        mock_transaction1.amount = 300.0
+        mock_transaction1.created_at = now - timedelta(days=10)
+
+        # Transaction outside range (too old)
+        mock_transaction2 = Mock(spec=Transaction)
+        mock_transaction2.transaction_type = "withdrawal"
+        mock_transaction2.amount = 50.0
+        mock_transaction2.created_at = now - timedelta(days=40)
+
+        mock_account.transactions = [mock_transaction1, mock_transaction2]
+
+        service = AccountService(mock_db_session)
+        service.repository.get_by_id = Mock(return_value=mock_account)
+
+        # Execute with custom date range (last 15 days)
+        start_date = now - timedelta(days=15)
+        end_date = now
+        statement = service.generate_account_statement(
+            account_id=1, start_date=start_date, end_date=end_date
+        )
+
+        # Assert - only transaction within range should be included
+        assert statement["transaction_count"] == 1
+        assert len(statement["transactions"]) == 1
+        assert statement["total_deposits"] == 300.0
+        assert statement["total_withdrawals"] == 0.0
+
+    def test_generate_account_statement_account_not_found(self, mock_db_session):
+        """Test account statement generation for non-existent account."""
+        service = AccountService(mock_db_session)
+        service.repository.get_by_id = Mock(return_value=None)
+
+        # Execute & Assert
+        with pytest.raises(HTTPException) as exc_info:
+            service.generate_account_statement(account_id=999)
+
+        assert exc_info.value.status_code == 404
+
+    def test_generate_account_statement_no_transactions(self, mock_db_session):
+        """Test account statement generation with no transactions."""
+        # Create mock account with no transactions
+        mock_account = Mock(spec=Account)
+        mock_account.id = 1
+        mock_account.account_number = "9876543210"
+        mock_account.account_holder = "Empty Account"
+        mock_account.account_type = "checking"
+        mock_account.balance = 0.0
+        mock_account.transactions = []
+
+        service = AccountService(mock_db_session)
+        service.repository.get_by_id = Mock(return_value=mock_account)
+
+        # Execute
+        statement = service.generate_account_statement(account_id=1)
+
+        # Assert
+        assert statement["transaction_count"] == 0
+        assert len(statement["transactions"]) == 0
+        assert statement["total_deposits"] == 0.0
+        assert statement["total_withdrawals"] == 0.0
+        assert statement["total_transfers_in"] == 0.0
+        assert statement["total_transfers_out"] == 0.0

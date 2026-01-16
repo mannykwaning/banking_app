@@ -16,7 +16,7 @@ Your task is to develop a REST service for a banking use case. To complete this 
    - [X] Transactions
    - [X] Money Transfer
    - [X] Cards
-   - [ ] Statements
+   - [X] Statements
 
 2. **Database** (using SQLite)
    - [X] Database implementation

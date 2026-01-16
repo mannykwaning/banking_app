@@ -12,6 +12,11 @@ A production-ready banking application backend API built with FastAPI and SQLite
 - 🌍 Environment variable configuration (.env support)
 - 📝 Interactive API documentation with Swagger UI (OAuth2 integrated)
 - ✅ Banking operations (accounts and transactions)
+- 📊 **Account statements with balance and activity tracking**
+  - Generate detailed account statements
+  - Customizable date ranges for statement periods
+  - Transaction summaries by type (deposits, withdrawals, transfers)
+  - Current balance and transaction count
 - � **Card Management with Encryption**
   - Issue debit, credit, and prepaid cards
   - Encrypted storage of PAN (Primary Account Number) and CVV
@@ -69,7 +74,7 @@ banking_app_backend/
 │   │   ├── transaction_repository.py
 │   │   └── user_repository.py      # User data access
 │   ├── schemas/
-│   │   ├── account.py              # Account request/response schemas
+│   │   ├── account.py              # Account schemas (includes AccountStatementResponse)
 │   │   ├── card.py                 # Card schemas
 │   │   ├── transaction.py          # Transaction schemas
 │   │   └── user.py                 # User and auth schemas
@@ -255,6 +260,7 @@ For detailed information, see [ENVIRONMENT_GUIDE.md](documentation/ENVIRONMENT_G
 - `POST /api/v1/accounts` - Create a new bank account
 - `GET /api/v1/accounts` - List all accounts
 - `GET /api/v1/accounts/{account_id}` - Get account details with transactions
+- `GET /api/v1/accounts/{account_id}/statement` - Generate account statement with balance and activity 📊
 - `DELETE /api/v1/accounts/{account_id}` - Delete an account
 
 ### Transactions (Protected - Requires Authentication)
@@ -509,6 +515,75 @@ curl "http://localhost:8000/api/v1/transfers/TXN-A1B2C3D4E5F6" \
 - ✅ Internal transfers (instant completion)
 - ✅ External transfers (pending status)
 - ✅ Comprehensive audit logging
+
+### Account Statements 📊
+
+Generate detailed account statements with balance and transaction activity.
+
+#### Generate Statement (Default: Last 30 Days)
+
+```bash
+curl "http://localhost:8000/api/v1/accounts/1/statement" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+#### Generate Statement with Custom Date Range
+
+```bash
+curl "http://localhost:8000/api/v1/accounts/1/statement?start_date=2026-01-01T00:00:00&end_date=2026-01-15T23:59:59" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+Response:
+
+```json
+{
+  "account_id": 1,
+  "account_number": "1234567890",
+  "account_holder": "John Doe",
+  "account_type": "checking",
+  "current_balance": 1800.0,
+  "statement_period": {
+    "start_date": "2025-12-16T00:00:00",
+    "end_date": "2026-01-15T23:59:59"
+  },
+  "total_deposits": 1500.0,
+  "total_withdrawals": 200.0,
+  "total_transfers_in": 600.0,
+  "total_transfers_out": 100.0,
+  "transaction_count": 8,
+  "transactions": [
+    {
+      "id": 1,
+      "account_id": 1,
+      "transaction_type": "deposit",
+      "amount": 500.0,
+      "description": "Salary deposit",
+      "status": "completed",
+      "created_at": "2026-01-10T10:00:00"
+    },
+    {
+      "id": 2,
+      "account_id": 1,
+      "transaction_type": "withdrawal",
+      "amount": 100.0,
+      "description": "ATM withdrawal",
+      "status": "completed",
+      "created_at": "2026-01-12T15:30:00"
+    }
+  ],
+  "created_at": "2026-01-15T12:00:00"
+}
+```
+
+**Statement Features:**
+
+- ✅ Customizable date ranges for statement periods
+- ✅ Transaction summaries by type (deposits, withdrawals, transfers in/out)
+- ✅ Current account balance
+- ✅ Complete transaction history for the period
+- ✅ Transaction count and categorization
+- ✅ JSON output format for easy integration
 
 ### Error Tracking & Monitoring 🚨
 
